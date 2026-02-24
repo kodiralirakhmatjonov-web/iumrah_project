@@ -1,0 +1,102 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:iumrah_project/core/navigation/premium_route.dart';
+import 'package:iumrah_project/core/localization/translations_store.dart';
+import 'package:iumrah_project/core/localization/translations_service.dart';
+import 'package:iumrah_project/core/localization/audio_cache_service.dart';
+
+import 'package:iumrah_project/home/tawaf_page.dart';
+// import onboarding если есть
+// import 'package:iumrah_project/home/onboarding_page.dart';
+
+class SplashPage extends StatefulWidget {
+  const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+
+  @override
+  void initState() {
+    super.initState();
+    _boot();
+  }
+
+  Future<void> _boot() async {
+
+    final prefs = await SharedPreferences.getInstance();
+
+    // ==========================
+    // 1️⃣ LANGUAGE
+    // ==========================
+
+    final lang = prefs.getString('app_language') ?? 'ru';
+
+    // ==========================
+    // 2️⃣ TRANSLATIONS CACHE
+    // ==========================
+
+    if (!TranslationsStore.isReady) {
+      await TranslationsService.load(lang);
+    }
+
+    // ==========================
+    // 3️⃣ AUDIO CACHE (CRITICAL)
+    // ==========================
+
+    await AudioCacheService.loadAndCacheAudio(lang);
+
+    // ==========================
+    // 4️⃣ PREMIUM CHECK (OFFLINE)
+    // ==========================
+
+    final isPremium = prefs.getBool('is_premium') ?? false;
+
+    // ==========================
+    // 5️⃣ FIRST LAUNCH
+    // ==========================
+
+    final firstLaunch = prefs.getBool('first_launch') ?? true;
+
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    if (!mounted) return;
+
+    // ==========================
+    // ROUTING
+    // ==========================
+
+    if (firstLaunch) {
+
+      // Navigator.of(context).pushReplacement(
+      //   PremiumRoute.push(const OnboardingPage()),
+      // );
+
+      Navigator.of(context).pushReplacement(
+        PremiumRoute.push(const TawafPage()),
+      );
+
+      return;
+    }
+
+    Navigator.of(context).pushReplacement(
+      PremiumRoute.push(const TawafPage()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Image.asset(
+          'assets/images/iumrah_logo.png',
+          width: 180,
+        ),
+      ),
+    );
+  }
+}
