@@ -33,7 +33,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:iumrah_project/core/localization/translations_store.dart';
 
 // ✅ модалка поздравления (как было)
-import 'package:iumrah_project/home/modal/plus_activ_modal.dart';
 
 class PlusPage extends StatefulWidget {
   const PlusPage({super.key});

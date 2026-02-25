@@ -18,7 +18,6 @@ import 'package:iumrah_project/home/modal/policy_modal.dart';
 // Если у тебя уже есть PremiumTap в app_ui.dart — используй его.
 // Я оставил мягкий премиум-тап на AnimatedScale/Opacity прямо здесь,
 // чтобы не ломать сборку, если класс отличается.
-import 'package:flutter_svg/flutter_svg.dart';
 
 // Share (если у тебя нет share_plus — добавь в pubspec.yaml)
 // share_plus: ^10.0.0

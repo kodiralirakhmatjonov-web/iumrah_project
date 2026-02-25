@@ -5,7 +5,6 @@ import 'package:iumrah_project/core/navigation/premium_route.dart';
 import 'package:iumrah_project/core/ui/app_ui.dart';
 import 'package:iumrah_project/home/certificate_page.dart';
 import 'package:iumrah_project/home/modal/pay_overlay.dart';
-import 'package:iumrah_project/home/mydua_page.dart';
 import 'package:iumrah_project/widgets/green_wave.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';

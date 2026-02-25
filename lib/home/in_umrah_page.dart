@@ -594,7 +594,7 @@ class _InUmrahPageState extends State<InUmrahPage>
                     ],
                   ),
 
-                  const SizedBox(height: 120), // место под FloatingNavBar
+                  const SizedBox(height: 90), // место под FloatingNavBar
                 ],
               ),
             ),

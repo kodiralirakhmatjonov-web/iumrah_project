@@ -624,7 +624,7 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
                     ],
                   ),
 
-                  const SizedBox(height: 120), // место под FloatingNavBar
+                  const SizedBox(height: 90), // место под FloatingNavBar
                 ],
               ),
             ),

@@ -4,13 +4,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'package:iumrah_project/home/audio_get.dart';
 import 'package:iumrah_project/home/in_umrah_page.dart';
 import 'package:iumrah_project/home/mydua_page.dart';
 import 'package:iumrah_project/home/plus_page.dart';
 import 'package:iumrah_project/home/profile_page.dart';
-import 'package:iumrah_project/home/umrah_end.dart';
-import 'package:iumrah_project/home/umrah_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,7 +17,6 @@ import 'package:iumrah_project/core/localization/translations_store.dart';
 import 'package:iumrah_project/core/ui/app_ui.dart'; // AppUI + PremiumTap
 import 'package:iumrah_project/home/widgets/floating_nav_bar.dart';
 import '../splash/version_gate.dart';
-import '../core/navigation/premium_route.dart';
 import '../splash/update_required_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -632,7 +628,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ],
                   ),
 
-                  const SizedBox(height: 120),
+                  const SizedBox(height: 90),
                 ],
               ),
             ),

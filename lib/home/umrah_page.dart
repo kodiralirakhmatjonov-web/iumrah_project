@@ -533,7 +533,7 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                     onTap: _handleContinue,
                     child: Center(
                       child: Text(
-                        t('continue_btn'),
+                        t('complete_btn'),
                         style: const TextStyle(
                           fontFamily: 'Lato',
                           fontWeight: FontWeight.w800,
