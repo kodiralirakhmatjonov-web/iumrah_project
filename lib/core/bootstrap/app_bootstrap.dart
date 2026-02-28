@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // если у тебя эти импорты уже есть — оставь свои пути как в проекте
 import 'package:iumrah_project/core/localization/translations_service.dart';
-import 'package:iumrah_project/core/localization/translations_store.dart';
 import 'package:iumrah_project/core/localization/audio_cache_service.dart';
 
 class AppBootstrap {

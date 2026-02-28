@@ -446,7 +446,7 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                             controller: _textPage,
                             children: [
                               _DuaTextPage(
-                                titleLeft: 'Standart Dua',
+                                titleLeft: 'Tawaf Dua',
                                 titleRight: t(_titleKey),
                                 body: t(_standardKeyForRound(_currentRound)),
                               ),
@@ -463,7 +463,7 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _dot(_textIndex == 0),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 20),
                             _dot(_textIndex == 1),
                           ],
                         ),

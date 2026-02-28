@@ -3,10 +3,10 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/rendering.dart';
 
 import 'package:iumrah_project/core/navigation/premium_route.dart';
 import 'package:iumrah_project/core/localization/translations_store.dart';
@@ -24,7 +24,7 @@ class _CertificatePageState extends State<CertificatePage> {
 
   String _userName = '—';
 
-  final GlobalKey _certKey = GlobalKey();
+  final GlobalKey _screenKey = GlobalKey();
 
   @override
   void initState() {
@@ -34,42 +34,49 @@ class _CertificatePageState extends State<CertificatePage> {
 
   Future<void> _loadUserName() async {
     final prefs = await SharedPreferences.getInstance();
-
     final n = (prefs.getString('profile_name') ?? '—').trim();
-
     if (!mounted) return;
     setState(() => _userName = n.isEmpty ? '—' : n);
   }
 
-  Future<Uint8List> _captureCertificatePng() async {
-    final boundary =
-        _certKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+  /// ---------- SCREENSHOT WHOLE SCREEN (EXCEPT BUTTONS) ----------
+  Future<Uint8List> _captureScreenPng() async {
+    await Future.delayed(const Duration(milliseconds: 20));
 
-    if (boundary == null) {
-      throw Exception('Boundary not found');
+    final boundary =
+        _screenKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+
+    if (boundary.debugNeedsPaint) {
+      await Future.delayed(const Duration(milliseconds: 20));
+      return _captureScreenPng();
     }
 
-    final image = await boundary.toImage(pixelRatio: 3);
+    final image = await boundary.toImage(pixelRatio: 3.0);
     final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
 
-    if (byteData == null) {
-      throw Exception('PNG conversion failed');
-    }
-
-    return byteData.buffer.asUint8List();
+    return byteData!.buffer.asUint8List();
   }
 
   Future<void> _shareCertificate() async {
-    HapticFeedback.lightImpact();
+    try {
+      HapticFeedback.lightImpact();
 
-    final png = await _captureCertificatePng();
-    final dir = await getTemporaryDirectory();
-    final file = File(
-      '${dir.path}/iumrah_certificate_${DateTime.now().millisecondsSinceEpoch}.png',
-    );
+      final png = await _captureScreenPng();
 
-    await file.writeAsBytes(png, flush: true);
-    await Share.shareXFiles([XFile(file.path)]);
+      final dir = await getTemporaryDirectory();
+      final path =
+          '${dir.path}/iumrah_certificate_${DateTime.now().millisecondsSinceEpoch}.png';
+
+      final file = File(path);
+      await file.writeAsBytes(png, flush: true);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'My Umrah Certificate - iumrah project',
+      );
+    } catch (e) {
+      debugPrint('Share error: $e');
+    }
   }
 
   void _goNext() {
@@ -91,7 +98,7 @@ class _CertificatePageState extends State<CertificatePage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // RADIAL BACKGROUND
+          /// ---------- BACKGROUND ----------
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -114,63 +121,129 @@ class _CertificatePageState extends State<CertificatePage> {
               children: [
                 const SizedBox(height: 50),
 
-                // HEADER
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Image.asset(
-                      'assets/images/iumrah_logo1.png',
-                      height: 85,
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        height: 50,
-                        width: 50,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back_ios_new,
-                          size: 30,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 28),
-
-                _GreenPill(text: t('end_text')),
-
-                const SizedBox(height: 5),
-
-                Expanded(
+                /// ---------- SCREEN CONTENT (WILL BE CAPTURED) ----------
+                RepaintBoundary(
+                  key: _screenKey,
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      RepaintBoundary(
-                        key: _certKey,
-                        child: SizedBox(
-                          width: 320,
-                          height: 420,
-                          child: _CertificateCard(
-                            userName: _userName,
-                            t: t,
+                      /// HEADER
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Image.asset(
+                            'assets/images/iumrah_logo1.png',
+                            height: 85,
+                          ),
+                          Container(
+                            height: 50,
+                            width: 50,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_ios_new,
+                              size: 30,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      /// GREEN PILL
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        height: 65,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(40),
+                          color: const Color(0xFF04D718),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          t('end_text'),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontFamily: 'Lato',
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            color: Colors.black,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 28),
-                      _ActionsBlock(
-                        onShare: _shareCertificate,
-                        onContinue: _goNext,
-                        t: t,
+
+                      const SizedBox(height: 35),
+
+                      /// CERTIFICATE CARD
+                      SizedBox(
+                        width: 320,
+                        height: 420,
+                        child: _CertificateCard(
+                          userName: _userName,
+                          t: t,
+                        ),
                       ),
                     ],
                   ),
                 ),
+
+                const Spacer(),
+
+                /// ---------- BUTTONS (NOT IN SCREENSHOT) ----------
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    0,
+                    16,
+                    MediaQuery.of(context).padding.bottom + 20,
+                  ),
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: _shareCertificate,
+                        child: Container(
+                          height: 54,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(26),
+                            color: const Color(0xFF04D718),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            t('sertificate_btn2'),
+                            style: const TextStyle(
+                              fontFamily: 'Lato',
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      GestureDetector(
+                        onTap: _goNext,
+                        child: Container(
+                          height: 54,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(26),
+                            color: Colors.white,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            t('complete_btn'),
+                            style: const TextStyle(
+                              fontFamily: 'Lato',
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
               ],
             ),
           ),
@@ -180,33 +253,7 @@ class _CertificatePageState extends State<CertificatePage> {
   }
 }
 
-class _GreenPill extends StatelessWidget {
-  final String text;
-  const _GreenPill({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      height: 65,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(40),
-        color: const Color(0xFF04D718),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontFamily: 'Lato',
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-          color: Colors.black,
-        ),
-      ),
-    );
-  }
-}
+/// ---------------- CERTIFICATE CARD ----------------
 
 class _CertificateCard extends StatelessWidget {
   final String userName;
@@ -222,7 +269,7 @@ class _CertificateCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Color(0xffe6e6ef),
+        color: const Color(0xffe6e6ef),
         borderRadius: BorderRadius.circular(26),
       ),
       child: Column(
@@ -302,65 +349,6 @@ class _CertificateCard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _ActionsBlock extends StatelessWidget {
-  final VoidCallback onShare;
-  final VoidCallback onContinue;
-  final String Function(String) t;
-
-  const _ActionsBlock({
-    required this.onShare,
-    required this.onContinue,
-    required this.t,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        GestureDetector(
-          onTap: onShare,
-          child: Container(
-            height: 54,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(26),
-              color: const Color(0xFF04D718),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              t('sertificate_btn2'),
-              style: const TextStyle(
-                fontFamily: 'Lato',
-                fontWeight: FontWeight.w800,
-                color: Colors.black,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        GestureDetector(
-          onTap: onContinue,
-          child: Container(
-            height: 54,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(26),
-              color: Colors.white,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              t('complete_btn'),
-              style: const TextStyle(
-                fontFamily: 'Lato',
-                fontWeight: FontWeight.w900,
-                color: Colors.black87,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

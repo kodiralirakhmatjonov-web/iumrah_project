@@ -430,11 +430,10 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                           width: double.infinity,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  isFinalPhase ? Colors.white : Colors.white24,
+                              backgroundColor: Colors.white,
                               foregroundColor: Colors.black,
                             ),
-                            onPressed: isFinalPhase ? _goNext : null,
+                            onPressed: _goNext, // всегда активна
                             child: Text(
                               t('continue_btn'),
                               style: const TextStyle(fontSize: 20),

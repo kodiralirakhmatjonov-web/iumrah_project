@@ -19,14 +19,14 @@ dependencies:
   
   path_provider: ^2.1.2
   photo_manager: ^3.0.0
-  in_app_purchase: ^3.1.13
+  in_app_purchase: ^3.2.0
   flutter_launcher_icons: ^0.13.1
-  package_info_plus: ^8.0.0
-  share_plus: 7.2.2
+  package_info_plus: ^8.1.2
+  share_plus: ^8.0.2
   
 
-  video_player: ^2.8.3
-  connectivity_plus: ^5.0.2
+  video_player: ^2.9.1
+  connectivity_plus: ^4.0.1
   just_audio: ^0.9.36
   siri_wave: ^2.3.0
   audio_visualizer: ^1.0.1

@@ -88,7 +88,7 @@ class _OnboardingPageState extends State<OnboardingPage>
 
       if (ok) {
         final lang = AppBootstrap.currentLang;
-        if (lang != null && lang.isNotEmpty) {
+        if (lang.isNotEmpty) {
           await Future.wait([
             // ⚠️ эти методы могут фейлиться без интернета — это ок, но не должно ломать UI
             AudioCacheService.loadAndCacheAudio(lang).catchError((_) {}),

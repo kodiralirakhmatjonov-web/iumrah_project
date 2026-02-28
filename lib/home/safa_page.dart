@@ -434,7 +434,7 @@ class _SafaPageState extends State<SafaPage> with TickerProviderStateMixin {
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 10),
 
                   // ---------- TEXT BLOCK (2 состояния, свайп)
                   SizedBox(
@@ -447,7 +447,7 @@ class _SafaPageState extends State<SafaPage> with TickerProviderStateMixin {
                             controller: _textPage,
                             children: [
                               _DuaTextPage(
-                                titleLeft: 'Standart ',
+                                titleLeft: 'Safa & Marwa',
                                 titleRight: t(_titleKey),
                                 body: t(_standardKeyForRound(_currentRound)),
                               ),
@@ -459,12 +459,12 @@ class _SafaPageState extends State<SafaPage> with TickerProviderStateMixin {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 30),
+                        const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _dot(_textIndex == 0),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 20),
                             _dot(_textIndex == 1),
                           ],
                         ),
@@ -472,7 +472,7 @@ class _SafaPageState extends State<SafaPage> with TickerProviderStateMixin {
                     ),
                   ),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
                   // ---------- Buttons container (two pills)
                   Container(
