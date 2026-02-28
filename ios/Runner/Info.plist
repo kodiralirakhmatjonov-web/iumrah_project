@@ -48,6 +48,6 @@
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>NSPhotoLibraryAddUsageDescription</key>
-<string>We need access to save your certificate image</string>
+        <string>We need access to save your certificate image</string>
 	</dict>
 </plist>
