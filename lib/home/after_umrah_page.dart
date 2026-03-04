@@ -444,7 +444,7 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
                     children: [
                       // Blue premium card
                       PremiumTap(
-                        onTap: _showComingSoon,
+                        onTap: () {},
                         child: Container(
                           height: 110,
                           width: double.infinity,

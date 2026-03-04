@@ -6,6 +6,7 @@ import 'package:iumrah_project/splash/welcome_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // ← ДОБАВЛЕНО
 
 import 'package:iumrah_project/core/navigation/premium_route.dart';
 
@@ -14,10 +15,6 @@ import 'package:iumrah_project/core/localization/translations_store.dart';
 import 'package:iumrah_project/home/modal/pay_overlay.dart';
 import 'package:iumrah_project/home/modal/rate_modal.dart';
 import 'package:iumrah_project/home/modal/policy_modal.dart';
-
-// Если у тебя уже есть PremiumTap в app_ui.dart — используй его.
-// Я оставил мягкий премиум-тап на AnimatedScale/Opacity прямо здесь,
-// чтобы не ломать сборку, если класс отличается.
 
 // Share (если у тебя нет share_plus — добавь в pubspec.yaml)
 // share_plus: ^10.0.0
@@ -222,6 +219,134 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
+  // ===========================
+  // ДОБАВЛЕНО: УДАЛЕНИЕ АККАУНТА
+  // ===========================
+
+  Future<void> _deleteAccount() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    try {
+      // удаляем профиль
+      await Supabase.instance.client
+          .from('profiles')
+          .delete()
+          .eq('user_id', user.id);
+
+      // выходим
+      await Supabase.instance.client.auth.signOut();
+
+      // чистим локальные данные
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushAndRemoveUntil(
+        PremiumRoute.push(const WelcomePage()),
+        (r) => false,
+      );
+    } catch (e) {
+      debugPrint('Delete error: $e');
+    }
+  }
+
+  Future<void> _confirmDeleteAccount() async {
+    HapticFeedback.lightImpact();
+
+    if (!mounted) return;
+
+    await showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.6),
+      builder: (context) {
+        return Center(
+          child: Container(
+            width: MediaQuery.of(context).size.width * 0.86,
+            padding: const EdgeInsetsDirectional.fromSTEB(20, 24, 20, 20),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF6F2E9),
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/images/logo.png',
+                  height: 70,
+                ),
+                const SizedBox(height: 25),
+                const Text(
+                  'Подтвердите что хотите\nудалить аккаунт это\nдействие невозможно\nвосстановить',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 22),
+
+                // удалить
+                _premiumTap(
+                  onTap: () {
+                    Navigator.pop(context);
+                    _deleteAccount();
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD9D3C4),
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'Удалить аккаунт',
+                      style: TextStyle(
+                        fontFamily: 'Lato',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+
+                // отменить
+                _premiumTap(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: double.infinity,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 12, 87, 141),
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'Отменить',
+                      style: TextStyle(
+                        fontFamily: 'Lato',
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   // ---------------------------
   // widgets
   // ---------------------------
@@ -327,7 +452,6 @@ class _ProfilePageState extends State<ProfilePage>
                     // ===== TOP SWIPE CONTAINER (2 states) =====
                     SizedBox(
                       width: double.infinity,
-                      // ✅ фикс overflow (было 210, не хватало ~18px)
                       height: 250,
                       child: Column(
                         children: [
@@ -336,9 +460,6 @@ class _ProfilePageState extends State<ProfilePage>
                               controller: _topPager,
                               physics: const BouncingScrollPhysics(),
                               children: [
-                                // -------------------
-                                // STATE 1 (avatar + name)
-                                // -------------------
                                 Column(
                                   children: [
                                     const SizedBox(height: 12),
@@ -375,10 +496,6 @@ class _ProfilePageState extends State<ProfilePage>
                                     const SizedBox(height: 10),
                                   ],
                                 ),
-
-                                // -------------------
-                                // STATE 2 (plastic card + flip)
-                                // -------------------
                                 Column(
                                   children: [
                                     const SizedBox(height: 14),
@@ -388,12 +505,10 @@ class _ProfilePageState extends State<ProfilePage>
                                       child: AnimatedBuilder(
                                         animation: _flipAnim,
                                         builder: (context, child) {
-                                          final v = _flipAnim.value; // 0..1
+                                          final v = _flipAnim.value;
                                           final angle = v * math.pi;
-
                                           final isBack = angle > (math.pi / 2);
 
-                                          // ✅ вертикальный флип (rotateX)
                                           return Transform(
                                             alignment: Alignment.center,
                                             transform: Matrix4.identity()
@@ -450,22 +565,17 @@ class _ProfilePageState extends State<ProfilePage>
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            /// LEFT CONTENT
                             Expanded(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  /// IMAGE
                                   Image.asset(
-                                    'assets/images/iumrah_id.png',
+                                    'assets/images/iumrah_id2.png',
                                     height: 35,
                                     fit: BoxFit.contain,
                                   ),
-
                                   const SizedBox(height: 6),
-
-                                  /// TEXT UNDER IMAGE
                                   Text(
                                     t('profile_id_text'),
                                     textAlign: TextAlign.start,
@@ -479,8 +589,6 @@ class _ProfilePageState extends State<ProfilePage>
                                 ],
                               ),
                             ),
-
-                            /// ARROW RIGHT
                             const Icon(
                               Icons.arrow_forward_ios_rounded,
                               size: 30,
@@ -623,6 +731,37 @@ class _ProfilePageState extends State<ProfilePage>
                       ),
                     ),
 
+                    const SizedBox(height: 12),
+
+                    // ===== DELETE ACCOUNT (ДОБАВЛЕНО) =====
+                    _premiumTap(
+                      onTap: _confirmDeleteAccount,
+                      radius: BorderRadius.circular(50),
+                      child: Container(
+                        width: double.infinity,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(50),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
+                          ),
+                        ),
+                        alignment: AlignmentDirectional.center,
+                        child: const Text(
+                          'Удалить аккаунт',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'Lato',
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+
                     const SizedBox(height: 18),
                   ],
                 ),
@@ -650,15 +789,12 @@ class _IdCardFront extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // ✅ размер 324 x 186
       width: 330,
       height: 190,
       padding: const EdgeInsetsDirectional.fromSTEB(18, 16, 18, 16),
       decoration: BoxDecoration(
-        // ✅ чёрная карта
         color: Colors.black,
         borderRadius: BorderRadius.circular(25),
-        // ✅ border stroke 1.5
         border: Border.all(
           color: Color(0xFF07E2FF),
           width: 1.5,
@@ -667,14 +803,12 @@ class _IdCardFront extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ iumrah ID - фотка из ассетс
           Image.asset(
-            'assets/images/iumrah_id.png',
+            'assets/images/iumrah_id2.png',
             height: 40,
             fit: BoxFit.contain,
           ),
           const SizedBox(height: 60),
-          // ✅ имя и гражданство под фоткой
           Text(
             name,
             style: const TextStyle(
@@ -687,7 +821,7 @@ class _IdCardFront extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             country,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'Lato',
               fontWeight: FontWeight.w600,
               fontSize: 14,
@@ -710,7 +844,6 @@ class _IdCardBack extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // ✅ размер 324 x 186
       width: 330,
       height: 190,
       decoration: BoxDecoration(
@@ -721,7 +854,7 @@ class _IdCardBack extends StatelessWidget {
           width: 1.5,
         ),
       ),
-      child: Center(
+      child: const Center(
         child: Text(
           'powered by iumrah ID',
           textAlign: TextAlign.center,
