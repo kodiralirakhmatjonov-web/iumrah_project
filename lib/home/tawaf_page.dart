@@ -1,19 +1,18 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:iumrah_project/core/localization/translations_store.dart';
 import 'package:iumrah_project/core/navigation/premium_route.dart';
-
 import 'package:iumrah_project/features/umrah/mydua_modal.dart';
 import 'package:iumrah_project/features/umrah/sunnadua_modal.dart';
 import 'package:iumrah_project/home/modal/pay_overlay.dart';
 import 'package:iumrah_project/home/umrah_page.dart';
 import 'package:iumrah_project/widgets/green_wave.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/services.dart';
 
 class TawafPage extends StatefulWidget {
   const TawafPage({super.key});
@@ -23,92 +22,63 @@ class TawafPage extends StatefulWidget {
 }
 
 class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
-  // ---------- translations helper (твоя архитектура: TranslationsStore.get)
   String t(String key) => TranslationsStore.get(key);
 
-  // ======================
-  // TAWAF STATE (1..7)
-  // ======================
   int _currentRound = 1; // 1..7
 
-  // ---------- Advisor card (2 состояния)
   bool _advisorExpanded = false;
 
-  // blinking "tap_btn" (5s on / 5s off)
   bool _showTap = true;
   Timer? _tapTimer;
 
-  // ---------- text states (Standart / Personal)
   final PageController _textPage = PageController();
   int _textIndex = 0;
 
-  // ---------- Audio
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _audioStarted = false;
 
   bool _isPremium = false;
   static const String _premiumKey = 'is_premium';
 
-  // ---------- swipe slider
-  double _sliderDx = 0.0; // 0..max
+  double _sliderDx = 0.0;
   bool _sliderDone = false;
 
-  // размеры (как ты дал)
   static const double _advisorW = 340;
-
   static const double _progressW = 280;
   static const double _progressH = 35;
 
-  // =======================
-  // CONTAINER HEIGHTS
-  // =======================
   final double _collapsedHeight = 150;
   final double _expandedHeight = 240;
 
-  // =======================
-  // WAVE — COLLAPSED
-  // =======================
   final double _waveCollapsedWidth = 200;
   final double _waveCollapsedHeight = 70;
   final double _waveCollapsedStart = 122;
   final double _waveCollapsedTop = 70;
 
-  // =======================
-  // WAVE — EXPANDED
-  // =======================
   final double _waveExpandedWidth = 310;
   final double _waveExpandedHeight = 120;
   final double _waveExpandedStart = 16;
   final double _waveExpandedTop = 110;
 
-  // зона свайпа
   static const double _swipeW = 310;
   static const double _swipeH = 85;
 
-  // ползунок внутри зоны
   static const double _knobSize = 62;
   double get _sliderMax => (_swipeW - _knobSize - 16).clamp(0, 9999);
 
-  // ======================
-  // PROGRESS
-  // ======================
   double get _roundProgress {
     if (_sliderMax <= 0) return 0.0;
     return (_sliderDx / _sliderMax).clamp(0.0, 1.0);
   }
 
-  // Tawaf = 50% всей Umrah-полосы
   double get _umrahTopProgress {
     final completedBefore = (_currentRound - 1).clamp(0, 7);
     final total = (completedBefore + _roundProgress).clamp(0.0, 7.0);
-    return (total / 7.0) * 0.5; // 0..0.5
+    return (total / 7.0) * 0.5;
   }
 
   double get _topFillWidth => _progressW * _umrahTopProgress;
 
-  // ======================
-  // TEXT KEYS (dynamic)
-  // ======================
   String get _titleKey => 'tawaf${_currentRound}_title1';
 
   String _standardKeyForRound(int r) => 'tawaf${r}_text1';
@@ -125,9 +95,6 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
     return k2;
   }
 
-  // ======================
-  // OFFLINE AUDIO KEY (SharedPrefs from AudioGetPage)
-  // ======================
   String _audioPrefsKey(int round, String lang) => 'audio_tawaf_${round}_$lang';
 
   Future<void> _startAudioIfNeeded() async {
@@ -139,8 +106,8 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
     if (_audioStarted) return;
 
     final lang = prefs.getString('app_language') ?? 'ru';
-
     final localPath = prefs.getString(_audioPrefsKey(_currentRound, lang));
+
     if (localPath == null || localPath.isEmpty) return;
 
     try {
@@ -190,9 +157,6 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
     }
   }
 
-  // ======================
-  // ROUND COMPLETE
-  // ======================
   void _goNextRoundOrFinish() {
     if (_currentRound < 7) {
       setState(() {
@@ -284,365 +248,449 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
     final int currentStep = _currentRound;
     final double circleProgress = (_currentRound / 7).clamp(0.0, 1.0);
 
+    const double logoBlockHeight = 85;
+    const double topGapAfterLogo = 12;
+    const double bottomBlockHeight = 181;
+    const double bottomBlockBottom = 16;
+    const double whiteGapUnderAdvisor = 15;
+    const double whiteGapAboveBottomBlock = 15;
+
+    final double advisorVisibleHeight =
+        _advisorExpanded ? _expandedHeight : _collapsedHeight;
+
     return Scaffold(
       backgroundColor: const Color(0xFFe6e6ef),
       body: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // ---------- TOP: logo left, back right
-                  SizedBox(
-                    width: double.infinity,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Image.asset(
-                          'assets/images/iumrah_logo.png',
-                          height: 85,
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Container(
-                            height: 50,
-                            width: 50,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_ios_new,
-                              size: 30,
-                              color: Colors.black,
-                            ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: logoBlockHeight,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Image.asset(
+                        'assets/images/iumrah_logo.png',
+                        height: 85,
+                      ),
+                      GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          height: 50,
+                          width: 50,
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // =======================
-                  // ADVISOR BLOCK
-                  // =======================
-
-                  SizedBox(
-                    width: _advisorW,
-                    height: 240,
-                    child: Stack(
-                      children: [
-                        AnimatedContainer(
-                          duration: const Duration(seconds: 1),
-                          curve: Curves.easeInOutCubic,
-                          width: _advisorW,
-                          height: _advisorExpanded
-                              ? _expandedHeight
-                              : _collapsedHeight,
-                          decoration: BoxDecoration(
+                          child: const Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 30,
                             color: Colors.black,
-                            borderRadius: BorderRadius.circular(50),
                           ),
                         ),
-                        Positioned(
-                          top: 20,
-                          left: 30,
-                          child: Container(
-                            width: _progressW,
-                            height: _progressH,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF2E4F3B),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: topGapAfterLogo),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final double areaHeight = constraints.maxHeight;
+
+                      final double whiteTop =
+                          advisorVisibleHeight + whiteGapUnderAdvisor;
+
+                      final double whiteBottom = bottomBlockBottom +
+                          bottomBlockHeight +
+                          whiteGapAboveBottomBlock;
+
+                      final double whiteHeight =
+                          (areaHeight - whiteTop - whiteBottom)
+                              .clamp(120.0, 9999.0);
+
+                      return Stack(
+                        children: [
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            right: 0,
                             child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 220),
-                                curve: Curves.easeInOut,
-                                width: _topFillWidth.clamp(0.0, _progressW),
-                                height: _progressH,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF9DFF3C),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const Positioned(
-                          left: 40,
-                          top: 80,
-                          child: Text(
-                            'Advisor Umrah Assistant',
-                            style: TextStyle(
-                              fontFamily: 'Lato',
-                              fontWeight: FontWeight.w700,
-                              fontSize: 22,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: _advisorExpanded
-                              ? _waveExpandedStart
-                              : _waveCollapsedStart,
-                          top: _advisorExpanded
-                              ? _waveExpandedTop
-                              : _waveCollapsedTop,
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 900),
-                            curve: Curves.easeInOutCubic,
-                            width: _advisorExpanded
-                                ? _waveExpandedWidth
-                                : _waveCollapsedWidth,
-                            height: _advisorExpanded
-                                ? _waveExpandedHeight
-                                : _waveCollapsedHeight,
-                            child: GestureDetector(
-                              onTap: _handleAdvisorTap,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(18),
-                                child: GreenWave(
-                                  expanded: _advisorExpanded,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          right: 20,
-                          bottom: 18,
-                          child: AnimatedOpacity(
-                            opacity: _advisorExpanded ? 1 : 0,
-                            duration: const Duration(milliseconds: 500),
-                            child: const Text(
-                              'powered by AI',
-                              style: TextStyle(
-                                fontFamily: 'Lato',
-                                fontSize: 11,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // ---------- TEXT BLOCK (2 состояния, свайп)
-                  SizedBox(
-                    width: 360,
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: 270,
-                          child: PageView(
-                            controller: _textPage,
-                            children: [
-                              _DuaTextPage(
-                                titleLeft: 'Tawaf Dua',
-                                titleRight: t(_titleKey),
-                                body: t(_standardKeyForRound(_currentRound)),
-                              ),
-                              _DuaTextPage(
-                                titleLeft: 'Personal Dua',
-                                titleRight: t(_titleKey),
-                                body: t(_personalKeyForRound(_currentRound)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 30),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _dot(_textIndex == 0),
-                            const SizedBox(width: 20),
-                            _dot(_textIndex == 1),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // ---------- Buttons container (two pills)
-                  Container(
-                    width: 340,
-                    padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _PillButton(
-                                height: 46,
-                                radius: 50,
-                                bg: const Color(0xFFD7C24B),
-                                fg: Colors.white,
-                                text: t('home_btn3'),
-                                onTap: _openMyDua,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: _PillButton(
-                                height: 46,
-                                radius: 50,
-                                bg: Colors.black,
-                                fg: Colors.white,
-                                text: t('sunna_dua_btn'),
-                                onTap: _openSunnaDua,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Directionality(
-                          textDirection: TextDirection.ltr,
-                          child: Container(
-                            width: _swipeW,
-                            height: _swipeH,
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(40),
-                            ),
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(40),
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: AnimatedContainer(
-                                        duration:
-                                            const Duration(milliseconds: 160),
-                                        width: _sliderDone
-                                            ? _swipeW
-                                            : (16 + _sliderDx + _knobSize),
-                                        height: _swipeH,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF9DFF3C)
-                                              .withOpacity(0.75),
-                                          borderRadius:
-                                              BorderRadius.circular(40),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  left: 8 + _sliderDx,
-                                  top: (_swipeH - _knobSize) / 2,
-                                  child: GestureDetector(
-                                    onHorizontalDragUpdate: _onSwipeUpdate,
-                                    onHorizontalDragEnd: _onSwipeEnd,
-                                    child: Container(
-                                      width: _knobSize,
-                                      height: _knobSize,
+                              alignment: Alignment.center,
+                              child: SizedBox(
+                                width: _advisorW,
+                                height: _expandedHeight,
+                                child: Stack(
+                                  children: [
+                                    AnimatedContainer(
+                                      duration: const Duration(seconds: 1),
+                                      curve: Curves.easeInOutCubic,
+                                      width: _advisorW,
+                                      height: advisorVisibleHeight,
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF9DFF3C),
-                                        shape: BoxShape.circle,
-                                        boxShadow: [
-                                          BoxShadow(
-                                            blurRadius: 18,
-                                            offset: const Offset(0, 8),
-                                            color:
-                                                Colors.black.withOpacity(0.18),
-                                          ),
-                                        ],
+                                        color: Colors.black,
+                                        borderRadius: BorderRadius.circular(50),
                                       ),
-                                      child: Center(
-                                        child: Icon(
-                                          _sliderDone
-                                              ? Icons.check_rounded
-                                              : Icons.arrow_forward_rounded,
-                                          size: 26,
-                                          color: Colors.black.withOpacity(0.65),
+                                    ),
+                                    Positioned(
+                                      top: 20,
+                                      left: 30,
+                                      child: Container(
+                                        width: _progressW,
+                                        height: _progressH,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF2E4F3B),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: AnimatedContainer(
+                                            duration: const Duration(
+                                                milliseconds: 220),
+                                            curve: Curves.easeInOut,
+                                            width: _topFillWidth.clamp(
+                                              0.0,
+                                              _progressW,
+                                            ),
+                                            height: _progressH,
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF9DFF3C),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                                Positioned(
-                                  right: 4,
-                                  top: (_swipeH - 80) / 2,
-                                  child: SizedBox(
-                                    width: 80,
-                                    height: 80,
-                                    child: TweenAnimationBuilder<double>(
-                                      tween: Tween<double>(
-                                        begin: 0,
-                                        end: circleProgress,
-                                      ),
-                                      duration:
-                                          const Duration(milliseconds: 300),
-                                      curve: Curves.easeInOut,
-                                      builder: (context, value, _) {
-                                        return Stack(
-                                          alignment: Alignment.center,
-                                          children: [
-                                            CustomPaint(
-                                              size: const Size(80, 80),
-                                              painter: _CircleProgressPainter(
-                                                progress: value,
-                                                backgroundColor:
-                                                    const Color(0xFF2E4F3F),
-                                                progressColor:
-                                                    const Color(0xFFB4F000),
-                                                strokeWidth: 13,
-                                              ),
-                                            ),
-                                            Text(
-                                              '$currentStep',
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20,
-                                                color: Colors.black,
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                if (_showTap && !_sliderDone)
-                                  Positioned.fill(
-                                    child: Center(
+                                    const Positioned(
+                                      left: 40,
+                                      top: 80,
                                       child: Text(
-                                        t('tap_btn'),
+                                        'Advisor Umrah Assistant',
                                         style: TextStyle(
                                           fontFamily: 'Lato',
-                                          fontSize: 14,
                                           fontWeight: FontWeight.w700,
-                                          color: Colors.black.withOpacity(0.35),
+                                          fontSize: 22,
+                                          color: Colors.white,
                                         ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                    Positioned(
+                                      left: _advisorExpanded
+                                          ? _waveExpandedStart
+                                          : _waveCollapsedStart,
+                                      top: _advisorExpanded
+                                          ? _waveExpandedTop
+                                          : _waveCollapsedTop,
+                                      child: AnimatedContainer(
+                                        duration:
+                                            const Duration(milliseconds: 900),
+                                        curve: Curves.easeInOutCubic,
+                                        width: _advisorExpanded
+                                            ? _waveExpandedWidth
+                                            : _waveCollapsedWidth,
+                                        height: _advisorExpanded
+                                            ? _waveExpandedHeight
+                                            : _waveCollapsedHeight,
+                                        child: GestureDetector(
+                                          onTap: _handleAdvisorTap,
+                                          child: ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(18),
+                                            child: GreenWave(
+                                              expanded: _advisorExpanded,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      right: 20,
+                                      bottom: 18,
+                                      child: AnimatedOpacity(
+                                        opacity: _advisorExpanded ? 1 : 0,
+                                        duration:
+                                            const Duration(milliseconds: 500),
+                                        child: const Text(
+                                          'powered by AI',
+                                          style: TextStyle(
+                                            fontFamily: 'Lato',
+                                            fontSize: 11,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                          AnimatedPositioned(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeInOutCubic,
+                            left: 0,
+                            right: 0,
+                            top: whiteTop,
+                            height: whiteHeight,
+                            child: Container(
+                              width: 340,
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 18, 20, 16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(38),
+                              ),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Tawaf',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: 'Lato',
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 26,
+                                      color: Colors.black.withOpacity(0.35),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Expanded(
+                                    child: PageView(
+                                      controller: _textPage,
+                                      children: [
+                                        _DuaTextPage(
+                                          titleLeft: 'Tawaf Dua',
+                                          titleRight: t(_titleKey),
+                                          body: t(
+                                            _standardKeyForRound(_currentRound),
+                                          ),
+                                        ),
+                                        _DuaTextPage(
+                                          titleLeft: 'Personal Dua',
+                                          titleRight: t(_titleKey),
+                                          body: t(
+                                            _personalKeyForRound(_currentRound),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      _dot(_textIndex == 0),
+                                      const SizedBox(width: 10),
+                                      _dot(_textIndex == 1),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: bottomBlockBottom,
+                            child: Container(
+                              width: 340,
+                              padding:
+                                  const EdgeInsets.fromLTRB(18, 16, 18, 18),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(50),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _PillButton(
+                                          height: 46,
+                                          radius: 50,
+                                          bg: const Color(0xFFD7C24B),
+                                          fg: Colors.white,
+                                          text: t('home_btn3'),
+                                          onTap: _openMyDua,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 14),
+                                      Expanded(
+                                        child: _PillButton(
+                                          height: 46,
+                                          radius: 50,
+                                          bg: Colors.black,
+                                          fg: Colors.white,
+                                          text: t('sunna_dua_btn'),
+                                          onTap: _openSunnaDua,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Directionality(
+                                    textDirection: TextDirection.ltr,
+                                    child: Container(
+                                      width: _swipeW,
+                                      height: _swipeH,
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withOpacity(0.08),
+                                        borderRadius: BorderRadius.circular(40),
+                                      ),
+                                      child: Stack(
+                                        children: [
+                                          Positioned.fill(
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(40),
+                                              child: Align(
+                                                alignment: Alignment.centerLeft,
+                                                child: AnimatedContainer(
+                                                  duration: const Duration(
+                                                    milliseconds: 160,
+                                                  ),
+                                                  width: _sliderDone
+                                                      ? _swipeW
+                                                      : (16 +
+                                                          _sliderDx +
+                                                          _knobSize),
+                                                  height: _swipeH,
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        const Color(0xFF9DFF3C)
+                                                            .withOpacity(0.75),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                      40,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            left: 8 + _sliderDx,
+                                            top: (_swipeH - _knobSize) / 2,
+                                            child: GestureDetector(
+                                              onHorizontalDragUpdate:
+                                                  _onSwipeUpdate,
+                                              onHorizontalDragEnd: _onSwipeEnd,
+                                              child: Container(
+                                                width: _knobSize,
+                                                height: _knobSize,
+                                                decoration: BoxDecoration(
+                                                  color:
+                                                      const Color(0xFF9DFF3C),
+                                                  shape: BoxShape.circle,
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      blurRadius: 18,
+                                                      offset:
+                                                          const Offset(0, 8),
+                                                      color: Colors.black
+                                                          .withOpacity(0.18),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Center(
+                                                  child: Icon(
+                                                    _sliderDone
+                                                        ? Icons.check_rounded
+                                                        : Icons
+                                                            .arrow_forward_rounded,
+                                                    size: 26,
+                                                    color: Colors.black
+                                                        .withOpacity(0.65),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Positioned(
+                                            right: 4,
+                                            top: (_swipeH - 80) / 2,
+                                            child: SizedBox(
+                                              width: 80,
+                                              height: 80,
+                                              child:
+                                                  TweenAnimationBuilder<double>(
+                                                tween: Tween<double>(
+                                                  begin: 0,
+                                                  end: circleProgress,
+                                                ),
+                                                duration: const Duration(
+                                                  milliseconds: 300,
+                                                ),
+                                                curve: Curves.easeInOut,
+                                                builder: (context, value, _) {
+                                                  return Stack(
+                                                    alignment: Alignment.center,
+                                                    children: [
+                                                      CustomPaint(
+                                                        size:
+                                                            const Size(80, 80),
+                                                        painter:
+                                                            _CircleProgressPainter(
+                                                          progress: value,
+                                                          backgroundColor:
+                                                              const Color(
+                                                            0xFF2E4F3F,
+                                                          ),
+                                                          progressColor:
+                                                              const Color(
+                                                            0xFFB4F000,
+                                                          ),
+                                                          strokeWidth: 13,
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        '$currentStep',
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 20,
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          if (_showTap && !_sliderDone)
+                                            Positioned.fill(
+                                              child: Center(
+                                                child: Text(
+                                                  t('tap_btn'),
+                                                  style: TextStyle(
+                                                    fontFamily: 'Lato',
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: Colors.black
+                                                        .withOpacity(0.35),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
-
-                  const SizedBox(height: 24),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -714,39 +762,42 @@ class _DuaTextPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
+    return ScrollConfiguration(
+      behavior: const _NoGlowScrollBehavior(),
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Column(
           children: [
-            Text(
-              titleLeft,
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontFamily: 'Lato',
-                fontWeight: FontWeight.w700,
-                fontSize: 24,
-                color: Colors.black.withOpacity(0.55),
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Flexible(
+                  child: Text(
+                    titleLeft,
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontFamily: 'Lato',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 24,
+                      color: Colors.black.withOpacity(0.55),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 90),
+                Text(
+                  titleRight,
+                  textAlign: TextAlign.left,
+                  style: const TextStyle(
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.w800,
+                    fontSize: 22,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
+            const SizedBox(height: 14),
             Text(
-              titleRight,
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                fontFamily: 'Lato',
-                fontWeight: FontWeight.w800,
-                fontSize: 22,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: Center(
-            child: Text(
               body,
               textAlign: TextAlign.center,
               style: const TextStyle(
@@ -757,9 +808,9 @@ class _DuaTextPage extends StatelessWidget {
                 color: Colors.black,
               ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
@@ -806,5 +857,15 @@ class _PillButton extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _NoGlowScrollBehavior extends ScrollBehavior {
+  const _NoGlowScrollBehavior();
+
+  @override
+  Widget buildOverscrollIndicator(
+      BuildContext context, Widget child, ScrollableDetails details) {
+    return child;
   }
 }

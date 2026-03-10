@@ -277,10 +277,10 @@ class _ProfilePageState extends State<ProfilePage>
                   height: 70,
                 ),
                 const SizedBox(height: 25),
-                const Text(
-                  'Подтвердите что хотите\nудалить аккаунт это\nдействие невозможно\nвосстановить',
+                Text(
+                  t('delete_text'),
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Lato',
                     fontWeight: FontWeight.w700,
                     fontSize: 18,
@@ -299,13 +299,13 @@ class _ProfilePageState extends State<ProfilePage>
                     width: double.infinity,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD9D3C4),
+                      color: const Color.fromARGB(255, 229, 8, 8),
                       borderRadius: BorderRadius.circular(40),
                     ),
                     alignment: Alignment.center,
-                    child: const Text(
-                      'Удалить аккаунт',
-                      style: TextStyle(
+                    child: Text(
+                      t('delete_btn'),
+                      style: const TextStyle(
                         fontFamily: 'Lato',
                         fontWeight: FontWeight.w800,
                         fontSize: 16,
@@ -324,12 +324,12 @@ class _ProfilePageState extends State<ProfilePage>
                     width: double.infinity,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 12, 87, 141),
+                      color: const Color.fromARGB(255, 208, 206, 200),
                       borderRadius: BorderRadius.circular(40),
                     ),
                     alignment: Alignment.center,
                     child: const Text(
-                      'Отменить',
+                      'cancel_btn',
                       style: TextStyle(
                         fontFamily: 'Lato',
                         fontWeight: FontWeight.w800,

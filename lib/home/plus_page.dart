@@ -198,7 +198,7 @@ class _PlusPageState extends State<PlusPage> {
 
       // 2) ✅ LOCAL PREMIUM FIRST (offline-first)
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('ispremium', true);
+      await prefs.setBool('is_premium', true);
       // Mark that server sync may be needed (we'll clear if sync ok)
       await prefs.setBool('premium_needs_sync', true);
 
@@ -234,7 +234,7 @@ class _PlusPageState extends State<PlusPage> {
 
       await supabase
           .from('profiles')
-          .update({'is_premium': true}).eq('id', user.id);
+          .update({'is_premium': true}).eq('user_id', user.id);
 
       // If succeeded, clear "needs sync"
       await prefs.setBool('premium_needs_sync', false);

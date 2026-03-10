@@ -89,11 +89,7 @@ class _OnboardingPageState extends State<OnboardingPage>
       if (ok) {
         final lang = AppBootstrap.currentLang;
         if (lang.isNotEmpty) {
-          await Future.wait([
-            // ⚠️ эти методы могут фейлиться без интернета — это ок, но не должно ломать UI
-            AudioCacheService.loadAndCacheAudio(lang).catchError((_) {}),
-            PremiumService.syncPremiumStatus().catchError((_) {}),
-          ]);
+          await PremiumService.syncPremiumStatus().catchError((_) {});
         }
 
         if (!mounted) return;

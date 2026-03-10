@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:iumrah_project/core/localization/translations_store.dart';
 import 'package:iumrah_project/core/navigation/premium_route.dart';
 import 'package:iumrah_project/core/ui/app_ui.dart';
+import 'package:iumrah_project/features/umrah/mydua_modal.dart';
 import 'package:iumrah_project/home/certificate_page.dart';
 import 'package:iumrah_project/home/modal/pay_overlay.dart';
 import 'package:iumrah_project/widgets/green_wave.dart';
@@ -280,7 +281,7 @@ class _UmrahEndPageState extends State<UmrahEndPage>
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 220),
                                 curve: Curves.easeInOut,
-                                width: 0,
+                                width: _progressW,
                                 height: _progressH,
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF9DFF3C),
@@ -405,8 +406,11 @@ class _UmrahEndPageState extends State<UmrahEndPage>
                     child: Column(
                       children: [
                         // DUA BUTTON
+
                         PremiumTap(
-                          onTap: () {}, // ничего не происходит
+                          onTap: () {
+                            MyDuaModal.open(context);
+                          },
                           child: Container(
                             height: 50,
                             width: double.infinity,
@@ -439,7 +443,7 @@ class _UmrahEndPageState extends State<UmrahEndPage>
                             onPressed: _goNext, // всегда активна
                             child: Text(
                               t('continue_btn'),
-                              style: const TextStyle(fontSize: 20),
+                              style: const TextStyle(fontSize: 17),
                             ),
                           ),
                         ),

@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:iumrah_project/core/localization/translations_store.dart';
+import 'package:iumrah_project/core/navigation/premium_route.dart';
+import 'package:iumrah_project/core/ui/app_ui.dart';
+
 import 'package:iumrah_project/features/umrah/mydua_store.dart';
+import 'package:iumrah_project/home/mydua_page.dart';
 
 class MyDuaModal {
   static Future<void> open(BuildContext context) {
@@ -30,12 +34,21 @@ class _MyDuaModalSheetState extends State<_MyDuaModalSheet> {
 
   final MyDuaStore _store = MyDuaStore();
 
+  void _openMyDuaPage() {
+    Navigator.of(context).push(
+      PremiumRoute.push(
+        const MyDuaPage(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
+      bottom: false,
       child: FractionallySizedBox(
-        heightFactor: 0.90, // 90% высоты текущего экрана
+        heightFactor: 0.94,
         alignment: AlignmentDirectional.bottomCenter,
         child: Container(
           width: double.infinity,
@@ -80,22 +93,48 @@ class _MyDuaModalSheetState extends State<_MyDuaModalSheet> {
 
                 const SizedBox(height: 18),
 
-                // list
                 Expanded(
                   child: ValueListenableBuilder<List<String>>(
                     valueListenable: _store.notes,
                     builder: (_, notes, __) {
                       if (notes.isEmpty) {
                         return Center(
-                          child: Text(
-                            '—',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontFamily: 'Lato',
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                              color: Colors.black.withOpacity(0.45),
-                            ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                t('modal_nodua'),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Lato',
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: Colors.black.withOpacity(0.55),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              PremiumTap(
+                                onTap: _openMyDuaPage,
+                                child: Container(
+                                  height: 60,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD7C24B),
+                                    borderRadius: BorderRadius.circular(50),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    t('modal_adddua'),
+                                    style: const TextStyle(
+                                      fontFamily: 'Lato',
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       }
@@ -129,7 +168,7 @@ class _ReadOnlyNoteCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsetsDirectional.only(bottom: 16),
       child: Container(
-        height: 350, // как ты просил
+        height: 350,
         width: double.infinity,
         padding: const EdgeInsetsDirectional.fromSTEB(24, 22, 24, 22),
         decoration: BoxDecoration(

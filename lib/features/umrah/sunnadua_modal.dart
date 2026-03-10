@@ -25,8 +25,9 @@ class _SunnahDuaSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
+      bottom: false,
       child: FractionallySizedBox(
-        heightFactor: 0.90,
+        heightFactor: 0.94,
         alignment: AlignmentDirectional.bottomCenter,
         child: Container(
           width: double.infinity,
