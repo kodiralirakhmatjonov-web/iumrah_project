@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:iumrah_project/hajj/hajj_home.dart';
 import 'package:iumrah_project/home/certificate_page.dart';
 import 'package:iumrah_project/home/profile_page.dart';
+import 'package:iumrah_project/home/umrah_start.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -565,7 +566,7 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
 
                       // White card: next umrah
                       _premiumCard(
-                        onTap: () => _go(const HajjHomePage()),
+                        onTap: () => _go(const UmrahStartPage()),
                         child: Container(
                           height: 110,
                           width: double.infinity,
