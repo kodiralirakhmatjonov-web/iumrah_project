@@ -95,6 +95,10 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
     return k2;
   }
 
+  String _personalArabKeyForRound(int r) {
+    return 'tawaf${r}_tarab1';
+  }
+
   String _audioPrefsKey(int round, String lang) => 'audio_tawaf_${round}_$lang';
 
   Future<void> _startAudioIfNeeded() async {
@@ -475,6 +479,11 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                           body: t(
                                             _personalKeyForRound(_currentRound),
                                           ),
+                                          arab: t(
+                                            _personalArabKeyForRound(
+                                              _currentRound,
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -753,11 +762,13 @@ class _DuaTextPage extends StatelessWidget {
   final String titleLeft;
   final String titleRight;
   final String body;
+  final String? arab;
 
   const _DuaTextPage({
     required this.titleLeft,
     required this.titleRight,
     required this.body,
+    this.arab,
   });
 
   @override
@@ -778,12 +789,12 @@ class _DuaTextPage extends StatelessWidget {
                     style: TextStyle(
                       fontFamily: 'Lato',
                       fontWeight: FontWeight.w700,
-                      fontSize: 24,
+                      fontSize: 22,
                       color: Colors.black.withOpacity(0.55),
                     ),
                   ),
                 ),
-                const SizedBox(width: 90),
+                const SizedBox(width: 80),
                 Text(
                   titleRight,
                   textAlign: TextAlign.left,
@@ -808,6 +819,18 @@ class _DuaTextPage extends StatelessWidget {
                 color: Colors.black,
               ),
             ),
+            if (arab != null && arab!.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              Text(
+                arab!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 28,
+                  height: 1.5,
+                  color: Colors.black,
+                ),
+              ),
+            ],
           ],
         ),
       ),

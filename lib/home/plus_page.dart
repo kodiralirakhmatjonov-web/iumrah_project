@@ -614,7 +614,7 @@ class _OfflineAdvisorCard extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'Lato',
               fontWeight: FontWeight.w700,
-              fontSize: 15,
+              fontSize: 18,
               color: Colors.black,
               height: 1.35,
             ),

@@ -328,8 +328,8 @@ class _ProfilePageState extends State<ProfilePage>
                       borderRadius: BorderRadius.circular(40),
                     ),
                     alignment: Alignment.center,
-                    child: const Text(
-                      'cancel_btn',
+                    child: Text(
+                      t('cancel_btn'),
                       style: TextStyle(
                         fontFamily: 'Lato',
                         fontWeight: FontWeight.w800,
@@ -749,8 +749,8 @@ class _ProfilePageState extends State<ProfilePage>
                           ),
                         ),
                         alignment: AlignmentDirectional.center,
-                        child: const Text(
-                          'Удалить аккаунт',
+                        child: Text(
+                          t('delete_btn'),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontFamily: 'Lato',
