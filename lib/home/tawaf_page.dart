@@ -4,7 +4,8 @@ import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:iumrah_project/home/modal/safa_modal.dart';
+import 'package:iumrah_project/features/umrah/sunnadua_modal.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:iumrah_project/core/localization/translations_store.dart';
@@ -183,7 +184,7 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
   }
 
   void _openMyDua() => MyDuaModal.open(context);
-  void _openSunnaDua() => SafaModal.open(context);
+  void _openSunnaDua() => SunnahDuaModal.open(context);
 
   void _onSwipeUpdate(DragUpdateDetails d) {
     if (_sliderDone) return;

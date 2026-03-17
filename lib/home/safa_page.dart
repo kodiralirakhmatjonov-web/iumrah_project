@@ -12,7 +12,6 @@ import 'package:iumrah_project/core/localization/translations_store.dart';
 import 'package:iumrah_project/core/navigation/premium_route.dart';
 import 'package:iumrah_project/features/umrah/mydua_modal.dart';
 import 'package:iumrah_project/home/modal/pay_overlay.dart';
-import 'package:iumrah_project/home/umrah_page.dart';
 import 'package:iumrah_project/widgets/green_wave.dart';
 
 class SafaPage extends StatefulWidget {
@@ -97,7 +96,7 @@ class _SafaPageState extends State<SafaPage> with TickerProviderStateMixin {
   }
 
   String _personalArabKeyForRound(int r) {
-    return 'tawaf${r}_sarab1';
+    return 'safa${r}_sarab1';
   }
 
   String _audioPrefsKey(int round, String lang) => 'audio_safa_${round}_$lang';
@@ -797,7 +796,7 @@ class _DuaTextPage extends StatelessWidget {
                       ).createShader(Rect.fromLTWH(0, 0, 200, 70)),
                   ),
                 ),
-                const SizedBox(width: 80),
+                const SizedBox(width: 60),
                 Text(
                   titleRight,
                   textAlign: TextAlign.left,

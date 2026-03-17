@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iumrah_project/home/in_umrah_page.dart';
 
-import 'package:iumrah_project/home/incar_page.dart';
 import 'package:iumrah_project/home/mydua_page.dart';
 import 'package:iumrah_project/home/plus_page.dart';
 import 'package:iumrah_project/home/profile_page.dart';
@@ -459,7 +458,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
                             SizedBox(
                                 height:
-                                    MediaQuery.of(context).size.height * 0.18),
+                                    MediaQuery.of(context).size.height * 0.15),
                             Column(
                               children: [
                                 // Green premium card
@@ -650,65 +649,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               ],
                             ),
 
-                            const SizedBox(height: 16),
-                            PremiumTap(
-                              onTap: () {},
-                              child: Container(
-                                height: 110,
-                                width: double.infinity,
-                                padding: const EdgeInsetsDirectional.fromSTEB(
-                                    22, 0, 18, 0),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(40),
-                                  color: Colors.white,
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      blurRadius: 18,
-                                      offset: Offset(0, 8),
-                                      color: Color(0x24000000),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Text(
-                                            ('Hajj Mode'),
-                                            style: const TextStyle(
-                                              fontSize: 24,
-                                              height: 1.05,
-                                              fontWeight: FontWeight.w800,
-                                              color: Color(0xFF111111),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 6),
-                                          const Text(
-                                            ('Cooming Soon'),
-                                            style: const TextStyle(
-                                              fontSize: 15,
-                                              height: 1.2,
-                                              fontWeight: FontWeight.w400,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Icon(
-                                      Icons.chevron_right_rounded,
-                                      size: 50,
-                                      color: Colors.black.withOpacity(0.35),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
                             const SizedBox(height: 110),
                           ],
                         ),

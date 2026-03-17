@@ -55,8 +55,8 @@ class _MyDuaModalSheetState extends State<_MyDuaModalSheet> {
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.92),
             borderRadius: const BorderRadiusDirectional.only(
-              topStart: Radius.circular(40),
-              topEnd: Radius.circular(40),
+              topStart: Radius.circular(50),
+              topEnd: Radius.circular(50),
             ),
           ),
           child: Padding(

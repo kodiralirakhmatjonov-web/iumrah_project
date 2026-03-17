@@ -26,7 +26,7 @@ class _SafaModalBody extends StatelessWidget {
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(28),
+          top: Radius.circular(50),
         ),
       ),
       child: SafeArea(
@@ -81,12 +81,12 @@ class _SafaModalBody extends StatelessWidget {
 ''',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 16,
-                        height: 1.7,
+                        fontSize: 28,
+                        height: 1.5,
                       ),
                     ),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 20),
 
                     /// TRANSLITERATION
                     const Text(
@@ -101,8 +101,8 @@ wa hazamal-aḥzāba waḥdah.
 ''',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 20,
-                        height: 1.6,
+                        fontSize: 22,
+                        height: 1.5,
                       ),
                     ),
 

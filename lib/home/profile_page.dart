@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iumrah_project/features/language/language_page.dart';
+import 'package:iumrah_project/home/rate_page.dart';
 import 'package:iumrah_project/splash/welcome_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
@@ -409,6 +410,8 @@ class _ProfilePageState extends State<ProfilePage>
           ),
 
           SafeArea(
+            bottom: false,
+
             // ✅ вся страница со скроллом
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -689,7 +692,11 @@ class _ProfilePageState extends State<ProfilePage>
                               fit: BoxFit.contain,
                             ),
                             text: t('profile_rate'),
-                            onTap: _openRateModal,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                PremiumRoute.push(const RatePage()),
+                              );
+                            },
                           ),
                           const SizedBox(height: 10),
                           _RowItem(
