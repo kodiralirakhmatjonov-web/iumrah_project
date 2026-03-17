@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iumrah_project/core/localization/translations_store.dart';
 
 class SafaModal {
-  static Future<void> show(BuildContext context) {
+  static Future<void> open(BuildContext context) {
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -12,8 +12,6 @@ class SafaModal {
       builder: (_) => const _SafaModalBody(),
     );
   }
-
-  static void open(BuildContext context) {}
 }
 
 class _SafaModalBody extends StatelessWidget {
@@ -58,14 +56,6 @@ class _SafaModalBody extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    /// LOGO
-                    Image.asset(
-                      'assets/images/iumrah_logo.png', // замени если нужно
-                      height: 42,
-                    ),
-
-                    const SizedBox(height: 28),
-
                     /// TITLE
                     Text(
                       TranslationsStore.get('overlay_safa_title'),
@@ -134,10 +124,10 @@ wa hazamal-aḥzāba waḥdah.
                     /// CLOSE BUTTON
                     SizedBox(
                       width: double.infinity,
-                      height: 58,
+                      height: 65,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
+                          backgroundColor: const Color(0xFFF06D13),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(50),
                           ),
@@ -146,7 +136,7 @@ wa hazamal-aḥzāba waḥdah.
                         child: Text(
                           TranslationsStore.get('complete_btn'),
                           style: const TextStyle(
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),

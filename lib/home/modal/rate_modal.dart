@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 class RateModal extends StatefulWidget {
   const RateModal({super.key});
@@ -25,6 +26,21 @@ class _RateModalState extends State<RateModal> {
     setState(() => _rating = value);
   }
 
+  Future<void> _submitRating() async {
+    HapticFeedback.mediumImpact();
+
+    if (_rating >= 4) {
+      final InAppReview inAppReview = InAppReview.instance;
+
+      if (await inAppReview.isAvailable()) {
+        await inAppReview.requestReview();
+      }
+    }
+
+    if (!mounted) return;
+    Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height * 0.9;
@@ -48,7 +64,7 @@ class _RateModalState extends State<RateModal> {
                 children: [
                   const SizedBox(height: 14),
 
-                  // drag indicator
+                  /// drag indicator
                   Container(
                     width: 50,
                     height: 5,
@@ -77,11 +93,12 @@ class _RateModalState extends State<RateModal> {
 
                   const SizedBox(height: 30),
 
-                  // ⭐ STAR RATING
+                  /// ⭐ STAR RATING
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(5, (index) {
                       final starIndex = index + 1;
+
                       return GestureDetector(
                         onTap: () => _setRating(starIndex),
                         child: Padding(
@@ -129,12 +146,7 @@ class _RateModalState extends State<RateModal> {
                             borderRadius: BorderRadius.circular(50),
                           ),
                         ),
-                        onPressed: _rating == 0
-                            ? null
-                            : () {
-                                HapticFeedback.mediumImpact();
-                                Navigator.pop(context);
-                              },
+                        onPressed: _rating == 0 ? null : _submitRating,
                         child: const Text(
                           'Submit',
                           style: TextStyle(

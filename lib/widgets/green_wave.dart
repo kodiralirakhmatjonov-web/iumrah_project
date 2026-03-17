@@ -49,16 +49,15 @@ class _GreenWavePainter extends CustomPainter {
   final double progress;
   _GreenWavePainter(this.progress);
 
-  final List<Color> greens = const [
-    Color(0xFF39FF14), // neon lime
-    Color(0xFF2EFF00),
-    Color(0xFF00FF66),
-    Color(0xFF00E65C),
-    Color(0xFF00CC52),
-    Color(0xFF00B347),
-    Color(0xFF00993D),
+  final List<Color> oranges = const [
+    Color(0xFFFFB74D), // light gold glow
+    Color(0xFFFFA726), // main premium orange
+    Color(0xFFFF9800), // amber
+    Color(0xFFFF8F00), // deep amber
+    Color(0xFFF57C00), // darker orange
+    Color(0xFFE65100), // burnt orange
+    Color.fromARGB(255, 255, 115, 0), // dark premium copper
   ];
-
   @override
   void paint(Canvas canvas, Size size) {
     final centerY = size.height * 0.45;
@@ -76,9 +75,9 @@ class _GreenWavePainter extends CustomPainter {
 
     final randomOffsets = [0.0, 1.3, 2.7, 0.8, 3.9, 5.2, 4.1, 6.0, 2.1, 4.8];
 
-    for (int i = 0; i < greens.length; i++) {
+    for (int i = 0; i < oranges.length; i++) {
       final paint = Paint()
-        ..color = greens[i]
+        ..color = oranges[i]
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.1; // тоньше линии
 

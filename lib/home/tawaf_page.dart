@@ -4,12 +4,12 @@ import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:iumrah_project/home/modal/safa_modal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:iumrah_project/core/localization/translations_store.dart';
 import 'package:iumrah_project/core/navigation/premium_route.dart';
 import 'package:iumrah_project/features/umrah/mydua_modal.dart';
-import 'package:iumrah_project/features/umrah/sunnadua_modal.dart';
 import 'package:iumrah_project/home/modal/pay_overlay.dart';
 import 'package:iumrah_project/home/umrah_page.dart';
 import 'package:iumrah_project/widgets/green_wave.dart';
@@ -183,7 +183,7 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
   }
 
   void _openMyDua() => MyDuaModal.open(context);
-  void _openSunnaDua() => SunnahDuaModal.open(context);
+  void _openSunnaDua() => SafaModal.open(context);
 
   void _onSwipeUpdate(DragUpdateDetails d) {
     if (_sliderDone) return;
@@ -346,7 +346,7 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                         width: _progressW,
                                         height: _progressH,
                                         decoration: BoxDecoration(
-                                          color: const Color(0xFF2E4F3B),
+                                          color: const Color(0x33F06D13),
                                           borderRadius:
                                               BorderRadius.circular(20),
                                         ),
@@ -362,7 +362,7 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                             ),
                                             height: _progressH,
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFF9DFF3C),
+                                              color: const Color(0xFFF06D13),
                                               borderRadius:
                                                   BorderRadius.circular(20),
                                             ),
@@ -374,11 +374,11 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                       left: 40,
                                       top: 80,
                                       child: Text(
-                                        'Advisor Umrah Assistant',
+                                        'Advisor Premuim Guide',
                                         style: TextStyle(
                                           fontFamily: 'Lato',
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 22,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 23,
                                           color: Colors.white,
                                         ),
                                       ),
@@ -456,8 +456,8 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       fontFamily: 'Lato',
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 26,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 28,
                                       color: Colors.black.withOpacity(0.35),
                                     ),
                                   ),
@@ -467,14 +467,14 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                       controller: _textPage,
                                       children: [
                                         _DuaTextPage(
-                                          titleLeft: 'Tawaf Dua',
+                                          titleLeft: 'Personal Dua',
                                           titleRight: t(_titleKey),
                                           body: t(
                                             _standardKeyForRound(_currentRound),
                                           ),
                                         ),
                                         _DuaTextPage(
-                                          titleLeft: 'Personal Dua',
+                                          titleLeft: 'Standart Dua',
                                           titleRight: t(_titleKey),
                                           body: t(
                                             _personalKeyForRound(_currentRound),
@@ -570,11 +570,10 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                                   height: _swipeH,
                                                   decoration: BoxDecoration(
                                                     color:
-                                                        const Color(0xFF9DFF3C)
-                                                            .withOpacity(0.75),
+                                                        const Color(0xFFF06D13),
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                      40,
+                                                      50,
                                                     ),
                                                   ),
                                                 ),
@@ -593,11 +592,11 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                                 height: _knobSize,
                                                 decoration: BoxDecoration(
                                                   color:
-                                                      const Color(0xFF9DFF3C),
+                                                      const Color(0xFFF06D13),
                                                   shape: BoxShape.circle,
                                                   boxShadow: [
                                                     BoxShadow(
-                                                      blurRadius: 18,
+                                                      blurRadius: 22,
                                                       offset:
                                                           const Offset(0, 8),
                                                       color: Colors.black
@@ -611,9 +610,8 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                                         ? Icons.check_rounded
                                                         : Icons
                                                             .arrow_forward_rounded,
-                                                    size: 26,
-                                                    color: Colors.black
-                                                        .withOpacity(0.65),
+                                                    size: 38,
+                                                    color: Colors.white,
                                                   ),
                                                 ),
                                               ),
@@ -621,10 +619,10 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                           ),
                                           Positioned(
                                             right: 4,
-                                            top: (_swipeH - 80) / 2,
+                                            top: (_swipeH - 90) / 2,
                                             child: SizedBox(
-                                              width: 80,
-                                              height: 80,
+                                              width: 90,
+                                              height: 90,
                                               child:
                                                   TweenAnimationBuilder<double>(
                                                 tween: Tween<double>(
@@ -641,19 +639,19 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                                     children: [
                                                       CustomPaint(
                                                         size:
-                                                            const Size(80, 80),
+                                                            const Size(90, 90),
                                                         painter:
                                                             _CircleProgressPainter(
                                                           progress: value,
                                                           backgroundColor:
-                                                              const Color(
-                                                            0xFF2E4F3F,
-                                                          ),
+                                                              const Color
+                                                                  .fromARGB(255,
+                                                                  79, 64, 46),
                                                           progressColor:
                                                               const Color(
-                                                            0xFFB4F000,
+                                                            0xFFF06D13,
                                                           ),
-                                                          strokeWidth: 13,
+                                                          strokeWidth: 15,
                                                         ),
                                                       ),
                                                       Text(
@@ -661,7 +659,7 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                                         style: const TextStyle(
                                                           fontWeight:
                                                               FontWeight.bold,
-                                                          fontSize: 20,
+                                                          fontSize: 28,
                                                           color: Colors.black,
                                                         ),
                                                       ),
@@ -678,10 +676,10 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                                                   t('tap_btn'),
                                                   style: TextStyle(
                                                     fontFamily: 'Lato',
-                                                    fontSize: 14,
+                                                    fontSize: 22,
                                                     fontWeight: FontWeight.w700,
                                                     color: Colors.black
-                                                        .withOpacity(0.35),
+                                                        .withOpacity(0.25),
                                                   ),
                                                 ),
                                               ),
@@ -724,7 +722,7 @@ class _CircleProgressPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2.5;
+    final radius = (size.width - strokeWidth) / 2.7;
     final rect = Rect.fromCircle(center: center, radius: radius);
 
     final bgPaint = Paint()
@@ -782,16 +780,20 @@ class _DuaTextPage extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Flexible(
-                  child: Text(
-                    titleLeft,
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontFamily: 'Lato',
-                      fontWeight: FontWeight.w700,
-                      fontSize: 22,
-                      color: Colors.black.withOpacity(0.55),
-                    ),
+                Text(
+                  titleLeft,
+                  textAlign: TextAlign.left,
+                  style: TextStyle(
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 22,
+                    foreground: Paint()
+                      ..shader = LinearGradient(
+                        colors: [
+                          Color.fromARGB(255, 255, 134, 6),
+                          Color.fromARGB(255, 88, 38, 0),
+                        ],
+                      ).createShader(Rect.fromLTWH(0, 0, 200, 70)),
                   ),
                 ),
                 const SizedBox(width: 80),

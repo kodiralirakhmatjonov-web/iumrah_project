@@ -110,7 +110,7 @@ class _ProfilePageState extends State<ProfilePage>
   Color _avatarColor(String name) {
     // Детерминированный “телеграм-стайл” набор
     const colors = <Color>[
-      Color(0xFF3B82F6),
+      Color.fromARGB(255, 0, 63, 164),
       Color(0xFF22C55E),
       Color(0xFFA855F7),
       Color(0xFFF97316),
@@ -118,7 +118,7 @@ class _ProfilePageState extends State<ProfilePage>
       Color(0xFFEF4444),
       Color(0xFF84CC16),
       Color(0xFF6366F1),
-      Color(0xFFF59E0B),
+      Color.fromARGB(255, 255, 128, 0),
       Color(0xFF14B8A6),
     ];
 
@@ -609,14 +609,16 @@ class _ProfilePageState extends State<ProfilePage>
                         width: double.infinity,
                         height: 74,
                         padding:
-                            const EdgeInsetsDirectional.fromSTEB(20, 0, 18, 0),
+                            const EdgeInsetsDirectional.fromSTEB(15, 0, 18, 0),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             begin: AlignmentDirectional.centerStart,
                             end: AlignmentDirectional.centerEnd,
                             colors: [
-                              const Color(0xFF7C3AED).withOpacity(0.70),
-                              const Color(0xFF22D3EE).withOpacity(0.70),
+                              const Color.fromARGB(255, 247, 106, 6)
+                                  .withOpacity(0.70),
+                              const Color.fromARGB(255, 65, 26, 2)
+                                  .withOpacity(0.70),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(50),
@@ -624,18 +626,18 @@ class _ProfilePageState extends State<ProfilePage>
                         child: Row(
                           children: [
                             Image.asset(
-                              'assets/icons/magic1.png',
-                              height: 35,
+                              'assets/icons/right_icon.png',
+                              height: 55,
                             ),
-                            const SizedBox(width: 20),
+                            const SizedBox(width: 5),
                             const Expanded(
                               child: Text(
-                                'iumrah Plus',
+                                'Premium Umrah',
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
                                   fontFamily: 'Lato',
                                   fontWeight: FontWeight.w800,
-                                  fontSize: 26,
+                                  fontSize: 24,
                                   color: Colors.white,
                                 ),
                               ),

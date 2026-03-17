@@ -438,8 +438,8 @@ class _InUmrahPageState extends State<InUmrahPage>
                               begin: AlignmentDirectional.centerStart,
                               end: AlignmentDirectional.centerEnd,
                               colors: [
-                                Color(0xFF62FF00),
-                                Color(0xff007D06),
+                                Color.fromARGB(255, 255, 134, 6),
+                                Color.fromARGB(255, 88, 38, 0),
                               ],
                             ),
                             boxShadow: const [
@@ -458,7 +458,7 @@ class _InUmrahPageState extends State<InUmrahPage>
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      t('home_btn2'),
+                                      t('home_btnp'),
                                       style: const TextStyle(
                                         fontSize: 24,
                                         height: 1.1,
@@ -470,9 +470,9 @@ class _InUmrahPageState extends State<InUmrahPage>
                                     Text(
                                       t('home_btn2_sub'),
                                       style: const TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 14,
                                         height: 1.2,
-                                        fontWeight: FontWeight.w400,
+                                        fontWeight: FontWeight.w600,
                                         color: Color(0xFFEFFFEA),
                                       ),
                                     ),
@@ -483,8 +483,7 @@ class _InUmrahPageState extends State<InUmrahPage>
                               Icon(
                                 Icons.chevron_right_rounded,
                                 size: 50,
-                                color: const Color.fromARGB(255, 255, 255, 255)
-                                    .withOpacity(0.95),
+                                color: Colors.white.withOpacity(0.95),
                               ),
                             ],
                           ),

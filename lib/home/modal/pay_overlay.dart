@@ -50,6 +50,7 @@ class PayOverlay extends StatelessWidget {
                 'Advisor',
                 style: TextStyle(
                   fontSize: 52,
+                  fontFamily: 'Lato',
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
                 ),
@@ -123,8 +124,8 @@ class PayOverlay extends StatelessWidget {
                       },
                       // 🔒 пока заглушка
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6BFF00),
-                        disabledBackgroundColor: const Color(0xFF6BFF00),
+                        backgroundColor: const Color(0xFFF06D13),
+                        disabledBackgroundColor: const Color(0xFFF06D13),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50),
                         ),
@@ -134,7 +135,7 @@ class PayOverlay extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                       ),
                     ),

@@ -2,9 +2,7 @@
 
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:iumrah_project/home/safa_page.dart';
 import 'package:iumrah_project/home/modal/pay_overlay.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -179,7 +177,7 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
       case 0:
         return Column(
           children: [
-            SvgPicture.asset(
+            Image.asset(
               'assets/icons/pray_icons.png',
               width: 70,
             ),
@@ -188,9 +186,9 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
               t('tawafpray_title1'),
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontFamily: 'Lato',
+                fontFamily: 'Montserrat',
                 fontWeight: FontWeight.w800,
-                fontSize: 22,
+                fontSize: 24,
               ),
             ),
             const SizedBox(height: 16),
@@ -200,7 +198,7 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
               style: TextStyle(
                 fontFamily: 'Lato',
                 fontWeight: FontWeight.w600,
-                fontSize: 16,
+                fontSize: 20,
                 height: 1.4,
                 color: Colors.black.withOpacity(0.75),
               ),
@@ -213,6 +211,13 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
           children: [
             Image.asset('assets/icons/zamzam.png', width: 80),
             const SizedBox(height: 24),
+            Text(t('zamzam_title1'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18)),
+            const SizedBox(height: 8),
             Text(t('zamzam_title'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
@@ -220,25 +225,18 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                     fontWeight: FontWeight.w800,
                     fontSize: 22)),
             const SizedBox(height: 8),
-            Text(t('zamzam_title1'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontFamily: 'Lato',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18)),
-            const SizedBox(height: 18),
             const Text('ZAM ZAM',
                 style: TextStyle(
-                    fontFamily: 'Lato',
+                    fontFamily: 'Montserrat',
                     fontWeight: FontWeight.w800,
                     fontSize: 32)),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             Text(t('zamzam_text'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontFamily: 'Lato',
                     fontWeight: FontWeight.w600,
-                    fontSize: 16,
+                    fontSize: 18,
                     height: 1.4,
                     color: Colors.black.withOpacity(0.75))),
           ],
@@ -248,11 +246,11 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
         return Column(
           children: [
             Image.asset('assets/icons/safa.png', width: 80),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Text(t('safago_title'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                    fontFamily: 'Lato',
+                    fontFamily: 'Montserrat',
                     fontWeight: FontWeight.w800,
                     fontSize: 22)),
             const SizedBox(height: 8),
@@ -268,7 +266,7 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                 style: TextStyle(
                     fontFamily: 'Lato',
                     fontWeight: FontWeight.w600,
-                    fontSize: 16,
+                    fontSize: 18,
                     height: 1.4,
                     color: Colors.black.withOpacity(0.75))),
           ],
@@ -278,11 +276,11 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
         return Column(
           children: [
             Image.asset('assets/icons/dua.png', width: 80),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Text(t('safadua_title'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                    fontFamily: 'Lato',
+                    fontFamily: 'Montserrat',
                     fontWeight: FontWeight.w800,
                     fontSize: 22)),
             const SizedBox(height: 20),
@@ -347,15 +345,22 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Image.asset('assets/images/iumrah_logo.png', height: 86),
+                  Image.asset(
+                    'assets/images/iumrah_logo.png',
+                    height: 85,
+                  ),
                   GestureDetector(
-                    onTap: () => Navigator.of(context).maybePop(),
-                    child: const SizedBox(
-                      width: 50,
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
                       height: 50,
-                      child: Icon(
-                        CupertinoIcons.chevron_back,
-                        size: 28,
+                      width: 50,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new,
+                        size: 30,
                         color: Colors.black,
                       ),
                     ),
@@ -399,7 +404,7 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                       width: _progressW,
                       height: _progressH,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2E4F3B),
+                        color: const Color(0x33F06D13),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Align(
@@ -410,7 +415,7 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                           width: _topFillWidth,
                           height: _progressH,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF9DFF3C),
+                            color: const Color(0xFFF06D13),
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
@@ -426,10 +431,10 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                     start: 40,
                     top: 80,
                     child: Text(
-                      'Advisor Umrah Assistant',
+                      'Advisor Premuim Guide',
                       style: TextStyle(
                         fontFamily: 'Lato',
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                         fontSize: 22,
                         color: Colors.white,
                       ),
@@ -526,7 +531,7 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                 height: 65,
                 width: double.infinity,
                 child: Material(
-                  color: const Color(0xFF7ED957),
+                  color: const Color(0xFFF06D13),
                   borderRadius: BorderRadius.circular(50),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(50),
@@ -538,7 +543,7 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                           fontFamily: 'Lato',
                           fontWeight: FontWeight.w800,
                           fontSize: 18,
-                          color: Colors.black,
+                          color: Colors.white,
                         ),
                       ),
                     ),

@@ -131,7 +131,8 @@ class GradientText extends StatelessWidget {
   final String text;
   final TextStyle style;
 
-  const GradientText(this.text, {super.key, required this.style});
+  const GradientText(this.text,
+      {super.key, required this.style, required LinearGradient gradient});
 
   @override
   Widget build(BuildContext context) {

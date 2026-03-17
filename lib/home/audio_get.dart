@@ -150,7 +150,7 @@ class _AudioGetPageState extends State<AudioGetPage>
     return WillPopScope(
       onWillPop: () async => !_locked,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0B0B0B),
+        backgroundColor: Colors.black,
         body: Stack(
           children: [
             SafeArea(
@@ -314,6 +314,7 @@ class _AudioGetPageState extends State<AudioGetPage>
                         'Advisor',
                         style: TextStyle(
                           fontSize: 52,
+                          fontFamily: 'Lato',
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
@@ -359,10 +360,10 @@ class _AudioGetPageState extends State<AudioGetPage>
                           ),
                         ),
                         const SizedBox(height: 10),
-                        const Text(
-                          "Идет соединение с Advisor AI пожалуйста не закрывайте окно",
+                        Text(
+                          t('audiocache_text'),
                           textAlign: TextAlign.center,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),

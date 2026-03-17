@@ -353,46 +353,49 @@ class _PlusPageState extends State<PlusPage> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(28),
                         child: Image.asset(
-                          'assets/images/plus_image.png',
+                          'assets/images/plus_image1.png',
                           width: double.infinity,
                           fit: BoxFit.cover,
                         ),
                       ),
+                      const SizedBox(height: 24),
+
+                      Text(
+                        'Advisor',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontSize: 45,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      ShaderMask(
+                        shaderCallback: (bounds) {
+                          return const LinearGradient(
+                            colors: [
+                              Color.fromARGB(255, 255, 134, 6),
+                              Color.fromARGB(255, 88, 38, 0),
+                            ],
+                          ).createShader(bounds);
+                        },
+                        child: const Text(
+                          'Premium Umrah Assistant',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontFamily: 'Lato',
+                            fontSize: 38,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            height: 1.15,
+                          ),
+                        ),
+                      ),
 
                       const SizedBox(height: 18),
-
-                      // ===== GREEN WAVE вместо зелёного прямоугольника =====
-                      // Текст поверх анимации: advisor_text
-                      Stack(
-                        alignment: AlignmentDirectional.center,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: 170,
-                              child: const GreenWave(
-                                expanded: true,
-                              ), // <-- твоя анимация
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsetsDirectional.fromSTEB(
-                                25, 0, 25, 0),
-                            child: Text(
-                              t('advisor_text'),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontFamily: 'Lato',
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
-                                color: Colors.white,
-                                height: 1.15,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
 
                       const SizedBox(height: 22),
 
@@ -409,8 +412,28 @@ class _PlusPageState extends State<PlusPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 20),
 
+                      Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              Color(0xFFFFA726).withOpacity(0.4),
+                              Colors.transparent,
+                            ],
+                          ),
+                        ),
+                        child: Center(
+                          child: Image.asset(
+                            'assets/icons/right_icon.png',
+                            height: 150,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
                       // ===== CHECKLIST (pay_box...) =====
                       _CheckRow(text: t('pay_box')),
                       const SizedBox(height: 10),
@@ -431,7 +454,7 @@ class _PlusPageState extends State<PlusPage> {
                           width: double.infinity,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF04D718),
+                            color: const Color.fromARGB(255, 255, 134, 6),
                             borderRadius: BorderRadius.circular(50),
                             boxShadow: [],
                           ),
@@ -483,6 +506,8 @@ class _PlusPageState extends State<PlusPage> {
                       ),
 
                       const SizedBox(height: 50),
+                      _OfflineAdvisorCard(),
+                      const SizedBox(height: 60),
 
                       // ===== BIG "Advisor" =====
                       const Text(
@@ -491,7 +516,7 @@ class _PlusPageState extends State<PlusPage> {
                         style: TextStyle(
                           fontFamily: 'Lato',
                           fontWeight: FontWeight.w900,
-                          fontSize: 42,
+                          fontSize: 45,
                           color: Colors.white,
                           height: 1.0,
                         ),
@@ -511,10 +536,65 @@ class _PlusPageState extends State<PlusPage> {
                           height: 1.2,
                         ),
                       ),
+                      const SizedBox(height: 50),
+                      // ===== GREEN WAVE вместо зелёного прямоугольника =====
+                      // Текст поверх анимации: advisor_text
+                      Stack(
+                        alignment: AlignmentDirectional.center,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: SizedBox(
+                              width: double.infinity,
+                              height: 210,
+                              child: const GreenWave(
+                                expanded: true,
+                              ), // <-- твоя анимация
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsetsDirectional.fromSTEB(
+                                25, 0, 25, 0),
+                            child: Text(
+                              t('advisor_text'),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontFamily: 'Lato',
+                                fontWeight: FontWeight.w700,
+                                fontSize: 17,
+                                color: Colors.white,
+                                height: 1.15,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 50),
+                      const Text(
+                        'Powered by AI Technology for Hajj and Umrah',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          color: Color.fromARGB(98, 255, 255, 255),
+                          height: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
 
+                      const Text(
+                        'iumrah project 2026',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          color: Color.fromARGB(255, 255, 255, 255),
+                          height: 1.0,
+                        ),
+                      ),
                       const SizedBox(height: 90),
-                      _OfflineAdvisorCard(),
-                      const SizedBox(height: 60),
                     ],
                   ),
                 ),
@@ -552,17 +632,18 @@ class _CheckRow extends StatelessWidget {
       children: [
         const SizedBox(width: 2),
         Container(
-          width: 18,
-          height: 18,
+          width: 25,
+          height: 25,
           decoration: const BoxDecoration(
-            color: Color(0xFF04D718),
+            color: Color.fromARGB(255, 255, 134, 6),
             shape: BoxShape.circle,
           ),
           alignment: AlignmentDirectional.center,
           child: const Icon(
             Icons.check,
-            size: 14,
+            size: 18,
             color: Colors.black,
+            fontWeight: FontWeight.w900,
           ),
         ),
         const SizedBox(width: 10),
@@ -573,8 +654,8 @@ class _CheckRow extends StatelessWidget {
             style: const TextStyle(
               fontFamily: 'Lato',
               fontWeight: FontWeight.w700,
-              fontSize: 12,
-              color: Color(0xFF04D718),
+              fontSize: 15,
+              color: Color.fromARGB(255, 255, 134, 6),
               height: 1.25,
             ),
           ),
@@ -593,15 +674,15 @@ class _OfflineAdvisorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsetsDirectional.fromSTEB(20, 22, 20, 22),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 22),
       decoration: BoxDecoration(
-        color: const Color(0xFFF4F6F4),
+        color: const Color.fromARGB(255, 0, 0, 0),
         borderRadius: BorderRadius.circular(50),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: const Color.fromARGB(255, 255, 137, 2),
             blurRadius: 16,
-            offset: const Offset(0, 8),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -615,7 +696,7 @@ class _OfflineAdvisorCard extends StatelessWidget {
               fontFamily: 'Lato',
               fontWeight: FontWeight.w700,
               fontSize: 18,
-              color: Colors.black,
+              color: Colors.white,
               height: 1.35,
             ),
           ),
@@ -636,8 +717,8 @@ class _OfflineAdvisorCard extends StatelessWidget {
                   begin: AlignmentDirectional.centerStart,
                   end: AlignmentDirectional.centerEnd,
                   colors: [
-                    Color(0xFF6BE11B),
-                    Color(0xFF3FD500),
+                    Color.fromARGB(255, 255, 153, 0),
+                    Color.fromARGB(255, 172, 80, 0),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(50),
@@ -649,7 +730,7 @@ class _OfflineAdvisorCard extends StatelessWidget {
                 style: const TextStyle(
                   fontFamily: 'Lato',
                   fontWeight: FontWeight.w900,
-                  fontSize: 16,
+                  fontSize: 19,
                   color: Colors.white,
                 ),
               ),

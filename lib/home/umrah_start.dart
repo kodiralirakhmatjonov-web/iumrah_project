@@ -191,10 +191,11 @@ class _UmrahStartPageState extends State<UmrahStartPage>
             child: Container(
               decoration: const BoxDecoration(
                 gradient: RadialGradient(
-                  radius: 0.8,
+                  center: Alignment(0.0, 0.1),
+                  radius: 0.7,
                   colors: [
-                    Color(0xFF04D718),
-                    Color(0x00737373),
+                    Color(0xffF06D13),
+                    Color(0x00F06D13),
                   ],
                 ),
               ),
@@ -255,7 +256,7 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                             color: Colors.black,
                             borderRadius: BorderRadius.circular(50),
                             border: Border.all(
-                              color: const Color(0xFF04D718),
+                              color: const Color(0xFFF06D13),
                               width: 1,
                             ),
                           ),
@@ -272,7 +273,7 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                             width: _progressW,
                             height: _progressH,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF2E4F3B),
+                              color: const Color(0x33F06D13),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Align(
@@ -283,7 +284,7 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                                 width: 0,
                                 height: _progressH,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF9DFF3C),
+                                  color: const Color(0xFFF06D13),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
@@ -396,7 +397,7 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50),
                       border: Border.all(
-                        color: const Color(0xFF04D718),
+                        color: const Color(0xFFF06D13),
                         width: 1,
                       ),
                     ),

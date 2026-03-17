@@ -116,6 +116,20 @@ class _SunnahDuaSheet extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 28),
+
+                // ===== TRANSLITERATION PLACE =====
+                Text(
+                  t('tawaf_common_text4'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Lato',
+                    fontSize: 28,
+                    fontWeight: FontWeight.w500,
+                    height: 1.5,
+                    color: Colors.black54,
+                  ),
+                ),
 
                 const SizedBox(height: 40),
 

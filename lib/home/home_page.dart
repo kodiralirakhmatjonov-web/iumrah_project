@@ -3,8 +3,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
 import 'package:iumrah_project/home/in_umrah_page.dart';
+
+import 'package:iumrah_project/home/incar_page.dart';
 import 'package:iumrah_project/home/mydua_page.dart';
 import 'package:iumrah_project/home/plus_page.dart';
 import 'package:iumrah_project/home/profile_page.dart';
@@ -32,7 +33,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late final Animation<double> _glowOpacity;
 
   static const Duration _fadeDur = Duration(seconds: 3);
-  static const Duration _holdDur = Duration(seconds: 12);
+  static const Duration _holdDur = Duration(seconds: 25);
 
   bool _textVisible = true;
 
@@ -396,241 +397,327 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
           // Content
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 25),
+            bottom: false,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.symmetric(
+                            horizontal: 24),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 25),
 
-                  // top row: logo + avatar
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.asset(
-                        'assets/images/iumrah_logo1.png',
-                        height: 85,
-                      ),
-                      const Spacer(),
-                      PremiumTap(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            PremiumRoute.push(
-                              const ProfilePage(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: 56,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            color: _avatarColorFor(_name.isEmpty ? 'A' : _name),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: AlignmentDirectional.center,
-                          child: Text(
-                            _initialLetter(),
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 34),
-
-                  _animatedHeadline(),
-
-                  const Spacer(),
-
-                  Column(
-                    children: [
-                      // Green premium card
-                      _premiumCard(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            PremiumRoute.push(const PlusPage()),
-                          );
-                        },
-                        child: Container(
-                          height: 110,
-                          width: double.infinity,
-                          padding: const EdgeInsetsDirectional.fromSTEB(
-                              22, 18, 18, 18),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            gradient: const LinearGradient(
-                              begin: AlignmentDirectional.centerStart,
-                              end: AlignmentDirectional.centerEnd,
-                              colors: [
-                                Color(0xFF62FF00),
-                                Color(0xff007D06),
-                              ],
-                            ),
-                            boxShadow: const [
-                              BoxShadow(
-                                blurRadius: 28,
-                                offset: Offset(0, 10),
-                                color: Color(0x33000000),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      t('home_btn2'),
+                            // top row: logo + avatar
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Image.asset(
+                                  'assets/images/iumrah_logo1.png',
+                                  height: 85,
+                                ),
+                                const Spacer(),
+                                PremiumTap(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      PremiumRoute.push(
+                                        const ProfilePage(),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    width: 56,
+                                    height: 80,
+                                    decoration: BoxDecoration(
+                                      color: _avatarColorFor(
+                                          _name.isEmpty ? 'A' : _name),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    alignment: AlignmentDirectional.center,
+                                    child: Text(
+                                      _initialLetter(),
                                       style: const TextStyle(
                                         fontSize: 24,
-                                        height: 1.1,
                                         fontWeight: FontWeight.w700,
                                         color: Colors.white,
                                       ),
                                     ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      t('home_btn2_sub'),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        height: 1.2,
-                                        fontWeight: FontWeight.w400,
-                                        color: Color(0xFFEFFFEA),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 50,
-                                color: Colors.white.withOpacity(0.95),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 17),
-
-                      // White card: Start Umrah
-                      _premiumCard(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            PremiumRoute.push(const InUmrahPage()),
-                          );
-                        },
-                        child: Container(
-                          height: 110,
-                          width: double.infinity,
-                          padding: const EdgeInsetsDirectional.fromSTEB(
-                              22, 0, 18, 0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            color: Colors.white,
-                            boxShadow: const [
-                              BoxShadow(
-                                blurRadius: 18,
-                                offset: Offset(0, 8),
-                                color: Color(0x24000000),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  t('home_btn'),
-                                  style: const TextStyle(
-                                    fontSize: 26,
-                                    height: 1.1,
-                                    fontWeight: FontWeight.w700,
-                                    color: Color(0xFFB56B00),
                                   ),
                                 ),
-                              ),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 50,
-                                color: Colors.black.withOpacity(0.35),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                              ],
+                            ),
 
-                      const SizedBox(height: 16),
+                            const SizedBox(height: 40),
 
-                      // White card: My Dua
-                      _premiumCard(
-                        onTap: () => _go(const MyDuaPage()),
-                        child: Container(
-                          height: 110,
-                          width: double.infinity,
-                          padding: const EdgeInsetsDirectional.fromSTEB(
-                              22, 0, 18, 0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            color: Colors.white,
-                            boxShadow: const [
-                              BoxShadow(
-                                blurRadius: 18,
-                                offset: Offset(0, 8),
-                                color: Color(0x24000000),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                            _animatedHeadline(),
+
+                            SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.18),
+                            Column(
+                              children: [
+                                // Green premium card
+                                _premiumCard(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      PremiumRoute.push(const PlusPage()),
+                                    );
+                                  },
+                                  child: Container(
+                                    height: 110,
+                                    width: double.infinity,
+                                    padding:
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                            22, 18, 18, 18),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(40),
+                                      gradient: const LinearGradient(
+                                        begin: AlignmentDirectional.centerStart,
+                                        end: AlignmentDirectional.centerEnd,
+                                        colors: [
+                                          Color.fromARGB(255, 255, 134, 6),
+                                          Color.fromARGB(255, 88, 38, 0),
+                                        ],
+                                      ),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          blurRadius: 28,
+                                          offset: Offset(0, 10),
+                                          color: Color(0x33000000),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                t('home_btnp'),
+                                                style: const TextStyle(
+                                                  fontSize: 24,
+                                                  height: 1.1,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Text(
+                                                t('home_btn2_sub'),
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                  height: 1.2,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFFEFFFEA),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Icon(
+                                          Icons.chevron_right_rounded,
+                                          size: 50,
+                                          color: Colors.white.withOpacity(0.95),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 17),
+
+                                // White card: Start Umrah
+                                _premiumCard(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      PremiumRoute.push(const InUmrahPage()),
+                                    );
+                                  },
+                                  child: Container(
+                                    height: 110,
+                                    width: double.infinity,
+                                    padding:
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                            22, 0, 18, 0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(40),
+                                      color: Colors.white,
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          blurRadius: 18,
+                                          offset: Offset(0, 8),
+                                          color: Color(0x24000000),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            t('home_btn'),
+                                            style: const TextStyle(
+                                              fontSize: 26,
+                                              height: 1.1,
+                                              fontWeight: FontWeight.w700,
+                                              color: Color(0xFFB56B00),
+                                            ),
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.chevron_right_rounded,
+                                          size: 50,
+                                          color: Colors.black.withOpacity(0.35),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                // White card: My Dua
+                                _premiumCard(
+                                  onTap: () => _go(const MyDuaPage()),
+                                  child: Container(
+                                    height: 110,
+                                    width: double.infinity,
+                                    padding:
+                                        const EdgeInsetsDirectional.fromSTEB(
+                                            22, 0, 18, 0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(40),
+                                      color: Colors.white,
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          blurRadius: 18,
+                                          offset: Offset(0, 8),
+                                          color: Color(0x24000000),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                t('home_btn3'),
+                                                style: const TextStyle(
+                                                  fontSize: 24,
+                                                  height: 1.05,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Color(0xFF111111),
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Text(
+                                                t('home_btn3_sub'),
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  height: 1.2,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: Color.fromARGB(
+                                                      255, 83, 73, 73),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Icon(
+                                          Icons.chevron_right_rounded,
+                                          size: 50,
+                                          color: Colors.black.withOpacity(0.35),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 16),
+                            PremiumTap(
+                              onTap: () {},
+                              child: Container(
+                                height: 110,
+                                width: double.infinity,
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                    22, 0, 18, 0),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(40),
+                                  color: Colors.white,
+                                  boxShadow: const [
+                                    BoxShadow(
+                                      blurRadius: 18,
+                                      offset: Offset(0, 8),
+                                      color: Color(0x24000000),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
                                   children: [
-                                    Text(
-                                      t('home_btn3'),
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        height: 1.05,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF111111),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            t('home_btn4'),
+                                            style: const TextStyle(
+                                              fontSize: 24,
+                                              height: 1.05,
+                                              fontWeight: FontWeight.w800,
+                                              color: Color(0xFF111111),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Text(
+                                            t('home_btn4_sub'),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              height: 1.2,
+                                              fontWeight: FontWeight.w400,
+                                              color: Color.fromARGB(
+                                                  255, 83, 73, 73),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      t('home_btn3_sub'),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        height: 1.2,
-                                        fontWeight: FontWeight.w400,
-                                        color: Color.fromARGB(255, 83, 73, 73),
-                                      ),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      size: 50,
+                                      color: Colors.black.withOpacity(0.35),
                                     ),
                                   ],
                                 ),
                               ),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 50,
-                                color: Colors.black.withOpacity(0.35),
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 110),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-
-                  const SizedBox(height: 90),
-                ],
-              ),
+                );
+              },
             ),
           ),
 

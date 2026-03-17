@@ -111,10 +111,9 @@ class _UmrahEndPageState extends State<UmrahEndPage>
     await _runSinglePhase(0);
     await _runSinglePhase(1);
     await _runSinglePhase(2);
-    await _runSinglePhase(3);
 
     setState(() {
-      _phase = 4;
+      _phase = 3;
     });
 
     await _fadeController.forward();
@@ -151,12 +150,12 @@ class _UmrahEndPageState extends State<UmrahEndPage>
     });
 
     await _fadeController.forward();
-    await Future.delayed(const Duration(seconds: 20));
+    await Future.delayed(const Duration(seconds: 30));
     await _fadeController.reverse();
   }
 
   void _toggleDarkMode() {
-    if (_phase == 4) {
+    if (_phase == 3) {
       setState(() {
         _darkMode = !_darkMode;
       });
@@ -182,7 +181,7 @@ class _UmrahEndPageState extends State<UmrahEndPage>
 
   @override
   Widget build(BuildContext context) {
-    final bool isFinalPhase = _phase == 4;
+    final bool isFinalPhase = _phase == 3;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -192,10 +191,11 @@ class _UmrahEndPageState extends State<UmrahEndPage>
             child: Container(
               decoration: const BoxDecoration(
                 gradient: RadialGradient(
-                  radius: 0.8,
+                  center: Alignment(0.0, 0.1),
+                  radius: 0.7,
                   colors: [
-                    Color(0xFF04D718),
-                    Color(0x00737373),
+                    Color(0xffF06D13),
+                    Color(0x00F06D13),
                   ],
                 ),
               ),
@@ -256,7 +256,7 @@ class _UmrahEndPageState extends State<UmrahEndPage>
                             color: Colors.black,
                             borderRadius: BorderRadius.circular(50),
                             border: Border.all(
-                              color: const Color(0xFF04D718),
+                              color: const Color(0xFFF06D13),
                               width: 1,
                             ),
                           ),
@@ -273,7 +273,7 @@ class _UmrahEndPageState extends State<UmrahEndPage>
                             width: _progressW,
                             height: _progressH,
                             decoration: BoxDecoration(
-                              color: const Color(0xFF2E4F3B),
+                              color: const Color(0x33F06D13),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Align(
@@ -281,10 +281,9 @@ class _UmrahEndPageState extends State<UmrahEndPage>
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 220),
                                 curve: Curves.easeInOut,
-                                width: _progressW,
                                 height: _progressH,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF9DFF3C),
+                                  color: const Color(0xFFF06D13),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
@@ -378,9 +377,7 @@ class _UmrahEndPageState extends State<UmrahEndPage>
                             ? t('end_text')
                             : _phase == 1
                                 ? t('end_text1')
-                                : _phase == 2
-                                    ? t('end_text3')
-                                    : t('end_text4'),
+                                : t('end_text3'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: _phase >= 2 ? 30 : 24,
@@ -399,14 +396,13 @@ class _UmrahEndPageState extends State<UmrahEndPage>
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50),
                       border: Border.all(
-                        color: const Color(0xFF04D718),
+                        color: const Color(0xFFF06D13),
                         width: 1,
                       ),
                     ),
                     child: Column(
                       children: [
                         // DUA BUTTON
-
                         PremiumTap(
                           onTap: () {
                             MyDuaModal.open(context);
@@ -443,7 +439,7 @@ class _UmrahEndPageState extends State<UmrahEndPage>
                             onPressed: _goNext, // всегда активна
                             child: Text(
                               t('continue_btn'),
-                              style: const TextStyle(fontSize: 17),
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ),
                         ),
