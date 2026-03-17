@@ -678,8 +678,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          Text(
-                                            t('home_btn4'),
+                                          const Text(
+                                            ('Hajj Mode'),
                                             style: const TextStyle(
                                               fontSize: 24,
                                               height: 1.05,
@@ -688,14 +688,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                             ),
                                           ),
                                           const SizedBox(height: 6),
-                                          Text(
-                                            t('home_btn4_sub'),
+                                          const Text(
+                                            ('Cooming Soon'),
                                             style: const TextStyle(
-                                              fontSize: 12,
+                                              fontSize: 15,
                                               height: 1.2,
                                               fontWeight: FontWeight.w400,
-                                              color: Color.fromARGB(
-                                                  255, 83, 73, 73),
+                                              color: Colors.black,
                                             ),
                                           ),
                                         ],
