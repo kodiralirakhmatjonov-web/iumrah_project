@@ -49,5 +49,14 @@
 		<false/>
 		<key>NSPhotoLibraryAddUsageDescription</key>
         <string>We need access to save your certificate image</string>
+		<key>CFBundleURLTypes</key>
+<array>
+  <dict>
+    <key>CFBundleURLSchemes</key>
+    <array>
+      <string>iumrah</string>
+    </array>
+  </dict>
+</array>
 	</dict>
 </plist>

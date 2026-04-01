@@ -226,7 +226,7 @@ class _AudioGetPageState extends State<AudioGetPage>
                       Text(
                         t('plus_activ_text'),
                         style: const TextStyle(
-                          fontSize: 24,
+                          fontSize: 22,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
@@ -241,14 +241,12 @@ class _AudioGetPageState extends State<AudioGetPage>
                         child: Column(
                           children: [
                             SizedBox(
-                              width: 63,
-                              height: 63,
+                              width: 67,
+                              height: 67,
                               child: _done
-                                  ? const Icon(
-                                      Icons.check_circle,
-                                      size: 63,
-                                      color: Colors.green,
-                                    )
+                                  ? const Icon(Icons.check_circle,
+                                      size: 67,
+                                      color: Color.fromARGB(255, 218, 108, 5))
                                   : const CupertinoActivityIndicator(
                                       radius: 30),
                             ),
@@ -272,7 +270,9 @@ class _AudioGetPageState extends State<AudioGetPage>
                                   value: _progress,
                                   backgroundColor: Colors.grey.shade300,
                                   valueColor: AlwaysStoppedAnimation(
-                                    _done ? Colors.green : Colors.grey,
+                                    _done
+                                        ? const Color.fromARGB(255, 218, 108, 5)
+                                        : Colors.grey,
                                   ),
                                 ),
                               ),
@@ -294,17 +294,17 @@ class _AudioGetPageState extends State<AudioGetPage>
                               borderRadius: BorderRadius.circular(50),
                               gradient: const LinearGradient(
                                 colors: [
-                                  Color(0xFF62FF00),
-                                  Color(0xFF007D06),
+                                  Color.fromARGB(255, 88, 38, 0),
+                                  Color.fromARGB(255, 255, 134, 6),
                                 ],
                               ),
                             ),
                             child: Text(
                               t('plus_activ_btn2'),
                               style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                              ),
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 18),
                             ),
                           ),
                         ),
@@ -313,13 +313,13 @@ class _AudioGetPageState extends State<AudioGetPage>
                       const Text(
                         'Advisor',
                         style: TextStyle(
-                          fontSize: 52,
+                          fontSize: 58,
                           fontFamily: 'Lato',
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w900,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 25),
                       Text(
                         t('pay_title'),
                         textAlign: TextAlign.center,

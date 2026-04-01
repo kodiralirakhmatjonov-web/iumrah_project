@@ -6,6 +6,7 @@ import 'package:iumrah_project/core/ui/app_ui.dart';
 import 'package:iumrah_project/features/umrah/mydua_modal.dart';
 import 'package:iumrah_project/home/certificate_page.dart';
 import 'package:iumrah_project/home/modal/pay_overlay.dart';
+import 'package:iumrah_project/home/widgets/umrah_header.dart';
 import 'package:iumrah_project/widgets/green_wave.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -207,31 +208,7 @@ class _UmrahEndPageState extends State<UmrahEndPage>
               padding: const EdgeInsetsDirectional.symmetric(horizontal: 24),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Image.asset(
-                        'assets/images/iumrah_logo1.png',
-                        height: 85,
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          height: 50,
-                          width: 50,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new,
-                            size: 30,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  const UmrahHeader(currentStep: 4), // Tahallul
 
                   const SizedBox(height: 30),
 

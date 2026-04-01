@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:iumrah_project/core/profiles/profile_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // если у тебя эти импорты уже есть — оставь свои пути как в проекте
@@ -54,9 +55,12 @@ class AppBootstrap {
   /// Важно: тоже не блокируем UI из-за сети/аудио
   static Future<void> setLanguage(String lang) async {
     final prefs = await SharedPreferences.getInstance();
+
     await prefs.setString(_langKey, lang);
 
     currentLang = lang;
+
+    unawaited(ProfileStore.load());
 
     // Переводы — пытаемся, но не держим пользователя
     unawaited(_safeLoadTranslations(lang));

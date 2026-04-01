@@ -1,23 +1,20 @@
 import 'dart:async';
-import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:iumrah_project/hajj/hajj_home.dart';
+import 'package:iumrah_project/core/profiles/profile_store.dart';
+import 'package:iumrah_project/features/advisor/barber_page.dart';
+
+import 'package:iumrah_project/hajj/main_home_page.dart';
+import 'package:iumrah_project/hajj/next_umra_page.dart';
 import 'package:iumrah_project/home/certificate_page.dart';
+
 import 'package:iumrah_project/home/profile_page.dart';
-import 'package:iumrah_project/home/rate_page.dart';
-import 'package:iumrah_project/home/umrah_start.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../core/navigation/premium_route.dart';
-import '../../core/localization/translations_store.dart';
-import 'package:iumrah_project/core/ui/app_ui.dart'; // AppUI + PremiumTap
+import 'package:iumrah_project/core/navigation/premium_route.dart';
+import 'package:iumrah_project/core/localization/translations_store.dart';
+import 'package:iumrah_project/core/ui/app_ui.dart';
 import 'package:iumrah_project/home/widgets/floating_nav_bar.dart';
-
-//import 'package:iumrah_project/home/green_wave.dart';
 
 class AfterUmrahPage extends StatefulWidget {
   const AfterUmrahPage({super.key});
@@ -28,34 +25,19 @@ class AfterUmrahPage extends StatefulWidget {
 
 class _AfterUmrahPageState extends State<AfterUmrahPage>
     with TickerProviderStateMixin {
-  // UI
   late final AnimationController _glowCtrl;
   late final Animation<double> _glowOpacity;
+
   static const Duration _fadeDur = Duration(seconds: 3);
-  static const Duration _holdDur = Duration(seconds: 12);
+  static const Duration _holdDur = Duration(seconds: 25);
+
+  final ScrollController _scrollController = ScrollController();
 
   bool _textVisible = true;
+  int _phase = 0;
 
-  // Text cycling
-  int _phase = 0; // 0 -> with name + welcome, 1 -> title3, 2 -> title2
   Timer? _cycleTimer;
 
-  // Profile cache
-  String _name = '';
-  bool _loadingName = true;
-
-  // keys
-  static const _prefsNameKey = 'profile_name_cache';
-
-  Null get style => null;
-
-  String _langFromPrefsOrDefault(SharedPreferences prefs) {
-    final v = prefs.getString('app_language');
-    if (v == null || v.isEmpty) return 'en';
-    return v;
-  }
-
-  // translation getter (Store-first)
   String t(String key) => TranslationsStore.get(key);
 
   @override
@@ -66,21 +48,9 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
       vsync: this,
       duration: const Duration(seconds: 1),
     );
+
     _glowOpacity =
         CurvedAnimation(parent: _glowCtrl, curve: Curves.easeOutCubic);
-
-    _bootstrap();
-  }
-
-  Future<void> _bootstrap() async {
-    // glow
-    _glowCtrl.forward();
-
-    // start cycling (always, even если имя ещё грузится)
-    _startCycle();
-
-    // load name cached -> else fetch once -> cache
-    await _loadNameOnce();
   }
 
   void _startCycle() {
@@ -91,127 +61,45 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
     });
   }
 
-  void _showComingSoon() {
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        content: Text(
-          t('cooming_text'),
-          textAlign: TextAlign.start,
-        ),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('OK'),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _switchPhase(int next) async {
     if (!mounted) return;
 
-    // 1) сперва прячем текущий текст
     setState(() => _textVisible = false);
 
-    // ждём пока он полностью исчезнет (1 сек)
     await Future.delayed(_fadeDur);
     if (!mounted) return;
 
-    // 2) меняем фазу и показываем новый текст
     setState(() {
       _phase = next;
       _textVisible = true;
     });
   }
 
-  Future<void> _loadNameOnce() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final cached = prefs.getString(_prefsNameKey);
-    if (cached != null && cached.trim().isNotEmpty) {
-      if (!mounted) return;
-      setState(() {
-        _name = cached.trim();
-        _loadingName = false;
-      });
-      return;
+  String _avatarAsset(String key) {
+    if (key.startsWith('male_')) {
+      return 'assets/profile/avatars/male/$key.png';
     }
-
-    // one request максимум (и только если есть user)
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) {
-      if (!mounted) return;
-      setState(() => _loadingName = false);
-      return;
+    if (key.startsWith('female_')) {
+      return 'assets/profile/avatars/female/$key.png';
     }
-
-    try {
-      final row = await Supabase.instance.client
-          .from('profiles')
-          .select('name')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-      final fetched = (row?['name'] ?? '').toString().trim();
-      if (fetched.isNotEmpty) {
-        await prefs.setString(_prefsNameKey, fetched);
-      }
-
-      if (!mounted) return;
-      setState(() {
-        _name = fetched;
-        _loadingName = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _loadingName = false);
-    }
+    return 'assets/profile/avatars/male/male_01.png';
   }
 
   @override
   void dispose() {
     _cycleTimer?.cancel();
     _glowCtrl.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  // Telegram-like color (stable)
-  Color _avatarColorFor(String seed) {
-    if (seed.isEmpty) return const Color(0xFF14B8A6);
-    int h = 0;
-    for (final c in seed.codeUnits) {
-      h = 31 * h + c;
-    }
-    final rnd = Random(h);
-    // мягкие “премиум” тона
-    final colors = <Color>[
-      const Color(0xFF14B8A6),
-      const Color(0xFF3B82F6),
-      const Color(0xFF8B5CF6),
-      const Color(0xFFF59E0B),
-      const Color(0xFF22C55E),
-      const Color(0xFFEC4899),
-    ];
-    return colors[rnd.nextInt(colors.length)];
-  }
-
-  String _initialLetter() {
-    final s = _name.trim();
-    if (s.isEmpty) return 'A';
-    return s.characters.first.toUpperCase();
-  }
-
   Widget _animatedHeadline() {
-    // phase mapping:
-    // 0: name + home_title
-    // 1: home_title3 + home_title3_sub
-    // 2: home_title2 + home_title2_sub
     Widget child;
 
     if (!_textVisible) {
-      child = const SizedBox(key: ValueKey('empty'));
+      child = const SizedBox(
+        key: ValueKey('empty'),
+      );
     } else if (_phase == 0) {
       child = Column(
         key: const ValueKey('phase0'),
@@ -224,23 +112,26 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
             overflow: TextOverflow.ellipsis,
             softWrap: true,
             style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
-              height: 1.25,
+              height: 1.0,
+              letterSpacing: -0.9,
             ),
           ),
           const SizedBox(height: 10),
           Text(
             t('home2_3_subtitle'),
             textAlign: TextAlign.center,
+            maxLines: 4,
             overflow: TextOverflow.ellipsis,
             softWrap: true,
             style: const TextStyle(
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
               color: Colors.white,
-              height: 1.25,
+              height: 1.0,
+              letterSpacing: -0.9,
             ),
           ),
         ],
@@ -257,10 +148,11 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
             overflow: TextOverflow.ellipsis,
             softWrap: true,
             style: const TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.w700,
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
-              height: 1.25,
+              height: 1.0,
+              letterSpacing: -0.9,
             ),
           ),
           const SizedBox(height: 10),
@@ -271,10 +163,11 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
             overflow: TextOverflow.ellipsis,
             softWrap: true,
             style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
               color: Colors.white,
-              height: 1.25,
+              height: 1.0,
+              letterSpacing: -0.9,
             ),
           ),
         ],
@@ -292,9 +185,10 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
             softWrap: true,
             style: const TextStyle(
               fontSize: 34,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
-              height: 1.25,
+              height: 1.0,
+              letterSpacing: -0.9,
             ),
           ),
           const SizedBox(height: 10),
@@ -305,10 +199,11 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
             overflow: TextOverflow.ellipsis,
             softWrap: true,
             style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
               color: Colors.white,
-              height: 1.25,
+              height: 1.0,
+              letterSpacing: -0.9,
             ),
           ),
         ],
@@ -319,16 +214,15 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
       duration: const Duration(seconds: 1),
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
-      transitionBuilder: (w, anim) {
-        final fade = FadeTransition(opacity: anim, child: w);
-        final slide = SlideTransition(
+      transitionBuilder: (widget, animation) {
+        final fade = FadeTransition(opacity: animation, child: widget);
+        return SlideTransition(
           position: Tween<Offset>(
             begin: const Offset(0, 0.02),
             end: Offset.zero,
-          ).animate(anim),
+          ).animate(animation),
           child: fade,
         );
-        return slide;
       },
       child: child,
     );
@@ -338,7 +232,6 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
     required VoidCallback onTap,
     required Widget child,
   }) {
-    // PremiumTap из твоего app_ui.dart (scale+opacity)
     return PremiumTap(
       onTap: onTap,
       child: child,
@@ -347,6 +240,367 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
 
   void _go(Widget page) {
     Navigator.of(context).push(PremiumRoute.push(page));
+  }
+
+  Widget _buildTopRow() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Image.asset(
+          'assets/images/iumrah_logo1.png',
+          height: 80,
+        ),
+        const Spacer(),
+        SizedBox(
+          height: 80,
+          child: Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: PremiumTap(
+              onTap: () {
+                Navigator.of(context).push(
+                  PremiumRoute.push(const ProfilePage()),
+                );
+              },
+              child: ValueListenableBuilder<ProfileData>(
+                valueListenable: ProfileStore.notifier,
+                builder: (context, profile, _) {
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: Container(
+                      key: ValueKey(profile.avatarKey),
+                      width: 60,
+                      height: 60,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                      ),
+                      child: ClipOval(
+                        child: Image.asset(
+                          _avatarAsset(profile.avatarKey),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeadlineBlock() {
+    return SizedBox(
+      height: 240,
+      child: Center(
+        child: _animatedHeadline(),
+      ),
+    );
+  }
+
+  Widget _buildCardsBlock() {
+    return Column(
+      children: [
+        PremiumTap(
+          onTap: () {},
+          child: Container(
+            height: 110,
+            width: double.infinity,
+            padding: const EdgeInsetsDirectional.fromSTEB(22, 18, 18, 18),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(40),
+              gradient: const LinearGradient(
+                begin: AlignmentDirectional.centerStart,
+                end: AlignmentDirectional.centerEnd,
+                colors: [
+                  Color.fromARGB(255, 2, 157, 235), //006593
+                  Color.fromARGB(255, 0, 63, 73),
+                ],
+              ),
+              boxShadow: const [
+                BoxShadow(
+                  blurRadius: 28,
+                  offset: Offset(0, 10),
+                  color: Color(0x33000000),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        t('home_3_btn'),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          height: 1.1,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        t('home_3_btn_sub'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          height: 1.2,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFFEFFFEA),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 50,
+                  color: Colors.white.withOpacity(0.95),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        /////////////Barbershop card//////////
+        _premiumCard(
+          onTap: () => _go(const BarbershopPage()),
+          child: Container(
+            height: 110,
+            width: double.infinity,
+            padding: const EdgeInsetsDirectional.fromSTEB(22, 0, 18, 0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(40),
+              color: Colors.black,
+              boxShadow: const [
+                BoxShadow(
+                  blurRadius: 18,
+                  offset: Offset(0, 8),
+                  color: Color(0x24000000),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Barbershop',
+                        style: TextStyle(
+                          fontSize: 29,
+                          height: 1.00,
+                          fontWeight: FontWeight.w800,
+                          color: Color.fromARGB(255, 209, 209, 209),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        t('home1_btn6_sub'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          height: 1.2,
+                          fontWeight: FontWeight.w400,
+                          color: Color.fromARGB(255, 149, 149, 149),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 50,
+                  color: const Color.fromARGB(255, 255, 255, 255)
+                      .withOpacity(0.25),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        ///////Certificate ////////
+        _premiumCard(
+          onTap: () => _go(const CertificatePage()),
+          child: Container(
+            height: 110,
+            width: double.infinity,
+            padding: const EdgeInsetsDirectional.fromSTEB(22, 0, 18, 0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(40),
+              color: Colors.white,
+              boxShadow: const [
+                BoxShadow(
+                  blurRadius: 18,
+                  offset: Offset(0, 8),
+                  color: Color(0x24000000),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        t('home_3_btn2'),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          height: 1.05,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF111111),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        t('home_3_btn2_sub'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          height: 1.2,
+                          fontWeight: FontWeight.w400,
+                          color: Color.fromARGB(255, 83, 73, 73),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 50,
+                  color: Colors.black.withOpacity(0.35),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        ///////Next Umrah Page////////
+        _premiumCard(
+          onTap: () => _go(const NextUmrahPage()),
+          child: Container(
+            height: 110,
+            width: double.infinity,
+            padding: const EdgeInsetsDirectional.fromSTEB(22, 0, 18, 0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(40),
+              color: Colors.white,
+              boxShadow: const [
+                BoxShadow(
+                  blurRadius: 18,
+                  offset: Offset(0, 8),
+                  color: Color(0x24000000),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        t('home_3_btn3'),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          height: 1.05,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF111111),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        t('home_3_btn3_sub'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          height: 1.2,
+                          fontWeight: FontWeight.w400,
+                          color: Color.fromARGB(255, 140, 140, 140),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 50,
+                  color: Colors.black.withOpacity(0.35),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        const SizedBox(height: 16),
+
+        /////////////exit umrah card///////////
+        _premiumCard(
+          onTap: () => _go(const MainHomePage()),
+          child: Container(
+            height: 90,
+            width: double.infinity,
+            padding: const EdgeInsetsDirectional.fromSTEB(22, 0, 18, 0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(40),
+              color: const Color.fromARGB(255, 27, 27, 27),
+              boxShadow: const [
+                BoxShadow(
+                  blurRadius: 18,
+                  offset: Offset(0, 8),
+                  color: Color(0x24000000),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        t('home_btn5'),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          height: 1.05,
+                          fontWeight: FontWeight.w800,
+                          color: Color.fromARGB(255, 209, 209, 209),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        t('home_btn5_sub'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          height: 1.2,
+                          fontWeight: FontWeight.w400,
+                          color: Color.fromARGB(255, 83, 73, 73),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_left_rounded,
+                  size: 50,
+                  color: const Color.fromARGB(255, 255, 255, 255)
+                      .withOpacity(0.15),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 16),
+      ],
+    );
   }
 
   @override
@@ -358,282 +612,60 @@ class _AfterUmrahPageState extends State<AfterUmrahPage>
         statusBarBrightness: Brightness.dark,
       ),
     );
+
     return Scaffold(
-      backgroundColor: const Color(0xFF131313), // основной фон из Figma
+      backgroundColor: const Color(0xFF131313),
       body: Stack(
         children: [
-          // ЗОЛОТОЙ СВЕТ
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
                 gradient: RadialGradient(
-                  center: Alignment(0.0, -0.4), // чуть выше центра
+                  center: Alignment(0.0, -0.4),
                   radius: 0.6,
                   colors: [
-                    Color(0xFF07E2FF), // центр
-                    Color(0x0007E2FF), // прозрачный край
+                    Color(0xFF006593),
+                    Color(0x0001C1C5),
                   ],
                   stops: [0.0, 1.0],
                 ),
               ),
             ),
           ),
-
-          // ТВОЙ КОНТЕНТ
           SafeArea(
-            child: Column(
-              children: const [
-                // сюда твой UI
-              ],
-            ),
-          ),
-
-          // Content
-          SafeArea(
+            bottom: false,
             child: Padding(
               padding: const EdgeInsetsDirectional.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  const SizedBox(height: 25),
-
-                  // top row: logo + avatar
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.asset(
-                        'assets/images/iumrah_logo1.png',
-                        height: 85,
-                      ),
-                      const Spacer(),
-                      PremiumTap(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            PremiumRoute.push(
-                              const ProfilePage(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: 56,
-                          height: 80, // ← делаем квадрат, 90 не нужно
-                          decoration: BoxDecoration(
-                            color: _avatarColorFor(_name.isEmpty ? 'A' : _name),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: AlignmentDirectional.center,
-                          child: Text(
-                            _initialLetter(),
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+              child: CustomScrollView(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 25),
                   ),
-
-                  const SizedBox(height: 34),
-
-                  // headline block (animated)
-                  _animatedHeadline(),
-
-                  const Spacer(),
-
-                  // Cards column
-                  Column(
-                    children: [
-                      // Blue premium card
-                      PremiumTap(
-                        onTap: () {},
-                        child: Container(
-                          height: 110,
-                          width: double.infinity,
-                          padding: const EdgeInsetsDirectional.fromSTEB(
-                              22, 18, 18, 18),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            gradient: const LinearGradient(
-                              begin: AlignmentDirectional.centerStart,
-                              end: AlignmentDirectional.centerEnd,
-                              colors: [
-                                Color(0xFF006593),
-                                Color(0xFF01C1C5),
-                              ],
-                            ),
-                            boxShadow: const [
-                              BoxShadow(
-                                blurRadius: 28,
-                                offset: Offset(0, 10),
-                                color: Color(0x33000000),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      t('home_3_btn'),
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        height: 1.1,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 50,
-                                color: const Color.fromARGB(255, 255, 255, 255)
-                                    .withOpacity(0.95),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 17),
-
-                      // White card: certificate
-                      _premiumCard(
-                        onTap: () => _go(const CertificatePage()),
-                        child: Container(
-                          height: 110,
-                          width: double.infinity,
-                          padding: const EdgeInsetsDirectional.fromSTEB(
-                              22, 0, 18, 0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            color: Colors.white,
-                            boxShadow: const [
-                              BoxShadow(
-                                blurRadius: 18,
-                                offset: Offset(0, 8),
-                                color: Color(0x24000000),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      t('home_3_btn2'),
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        height: 1.05,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF111111),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      t('home_3_btn2_sub'),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        height: 1.2,
-                                        fontWeight: FontWeight.w400,
-                                        color: Color.fromARGB(255, 83, 73, 73),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 50,
-                                color:
-                                    const Color(0xFF000000).withOpacity(0.35),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // White card: next umrah
-                      _premiumCard(
-                        onTap: () => _go(const UmrahStartPage()),
-                        child: Container(
-                          height: 110,
-                          width: double.infinity,
-                          padding: const EdgeInsetsDirectional.fromSTEB(
-                              22, 0, 18, 0),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            color: Colors.white,
-                            boxShadow: const [
-                              BoxShadow(
-                                blurRadius: 18,
-                                offset: Offset(0, 8),
-                                color: Color(0x24000000),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      t('home_3_btn3'),
-                                      style: const TextStyle(
-                                        fontSize: 24,
-                                        height: 1.05,
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF111111),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      t('home_3_btn3_sub'),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        height: 1.2,
-                                        fontWeight: FontWeight.w400,
-                                        color: Color.fromARGB(255, 83, 73, 73),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                Icons.chevron_right_rounded,
-                                size: 50,
-                                color:
-                                    const Color(0xFF000000).withOpacity(0.35),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                  SliverToBoxAdapter(
+                    child: _buildTopRow(),
                   ),
-
-                  const SizedBox(height: 90), // место под FloatingNavBar
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 36),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _buildHeadlineBlock(),
+                  ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 20),
+                  ),
+                  SliverToBoxAdapter(
+                    child: _buildCardsBlock(),
+                  ),
+                  const SliverToBoxAdapter(
+                    child: SizedBox(height: 140),
+                  ),
                 ],
               ),
             ),
           ),
-
-          // Floating nav bar (как ты просил — подключение 1 строкой)
-          FloatingNavBar(currentIndex: 2), // 0,1,2
+          const FloatingNavBar(currentIndex: 2),
         ],
       ),
     );

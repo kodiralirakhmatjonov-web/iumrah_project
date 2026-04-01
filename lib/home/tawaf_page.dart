@@ -5,6 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iumrah_project/features/umrah/sunnadua_modal.dart';
+import 'package:iumrah_project/home/widgets/umrah_header.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -274,31 +275,7 @@ class _TawafPageState extends State<TawafPage> with TickerProviderStateMixin {
                 SizedBox(
                   width: double.infinity,
                   height: logoBlockHeight,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Image.asset(
-                        'assets/images/iumrah_logo.png',
-                        height: 85,
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          height: 50,
-                          width: 50,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new,
-                            size: 30,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                  child: const UmrahHeader(currentStep: 1), // Tawaf
                 ),
                 const SizedBox(height: topGapAfterLogo),
                 Expanded(

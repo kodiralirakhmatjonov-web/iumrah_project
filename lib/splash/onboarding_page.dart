@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:iumrah_project/core/bootstrap/app_bootstrap.dart';
-import 'package:iumrah_project/core/localization/premium_service.dart';
 import 'package:iumrah_project/core/localization/translations_store.dart';
 import 'package:iumrah_project/core/navigation/premium_route.dart';
 import 'package:iumrah_project/splash/onboarding1_page.dart';
@@ -22,19 +20,13 @@ class _OnboardingPageState extends State<OnboardingPage>
   late final Animation<double> _textOpacity;
   late final Animation<double> _buttonOpacity;
 
-  bool _isReady = false;
-  bool _isLoading = true;
-
   String t(String key) => TranslationsStore.get(key);
 
   @override
   void initState() {
     super.initState();
-
     _initAnimations();
-    _startSequence(); // ✅ анимации стартуют сразу
-
-    _initApp(); // ✅ данные грузим параллельно, кнопка пока disabled
+    _startSequence();
   }
 
   void _initAnimations() {
@@ -64,59 +56,16 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Future<void> _startSequence() async {
-    // 2 секунды логотип
     await _logoController.forward();
-
-    // пауза 1 секунда
     await Future.delayed(const Duration(seconds: 1));
-
-    // 3 секунды текст
     await _textController.forward();
-
-    // пауза 2 секунды
     await Future.delayed(const Duration(seconds: 2));
 
-    // появляется кнопка (но может быть disabled пока не ready)
     if (!mounted) return;
     _buttonController.forward();
   }
 
-  Future<void> _initApp() async {
-    try {
-      final ok = await AppBootstrap.init();
-
-      if (ok) {
-        final lang = AppBootstrap.currentLang;
-        if (lang.isNotEmpty) {
-          await PremiumService.syncPremiumStatus().catchError((_) {});
-        }
-
-        if (!mounted) return;
-        setState(() {
-          _isReady = true;
-          _isLoading = false;
-        });
-        return;
-      }
-
-      // Если init() вернул false — значит язык/кэш не готов.
-      // UI не должен зависать: просто оставляем кнопку disabled.
-      if (!mounted) return;
-      setState(() {
-        _isReady = false;
-        _isLoading = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isReady = false;
-        _isLoading = false;
-      });
-    }
-  }
-
   void _goNext() {
-    if (!_isReady) return;
     Navigator.of(context).pushReplacement(
       PremiumRoute.push(const Onbording1Page()),
     );
@@ -135,15 +84,12 @@ class _OnboardingPageState extends State<OnboardingPage>
     return Scaffold(
       body: Stack(
         children: [
-          // ===== BACKGROUND IMAGE =====
           Positioned.fill(
             child: Image.asset(
               'assets/images/onbording.png',
               fit: BoxFit.cover,
             ),
           ),
-
-          // ===== DARK GRADIENT =====
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -158,15 +104,12 @@ class _OnboardingPageState extends State<OnboardingPage>
               ),
             ),
           ),
-
           SafeArea(
             child: Padding(
               padding: const EdgeInsetsDirectional.symmetric(horizontal: 24),
               child: Column(
                 children: [
                   const Spacer(),
-
-                  // ===== LOGO =====
                   FadeTransition(
                     opacity: _logoOpacity,
                     child: Image.asset(
@@ -175,10 +118,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                       fit: BoxFit.contain,
                     ),
                   ),
-
                   const Spacer(),
-
-                  // ===== TITLE + SUB =====
                   FadeTransition(
                     opacity: _textOpacity,
                     child: Column(
@@ -208,58 +148,33 @@ class _OnboardingPageState extends State<OnboardingPage>
                       ],
                     ),
                   ),
-
                   const Spacer(),
-
-                  // ===== BUTTON =====
                   FadeTransition(
                     opacity: _buttonOpacity,
                     child: SizedBox(
                       height: 60,
                       width: double.infinity,
                       child: Material(
-                        color: _isReady
-                            ? Colors.white
-                            : Colors.white.withOpacity(0.4),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(50),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(50),
-                          onTap: _isReady ? _goNext : null,
+                          onTap: _goNext,
                           child: Center(
-                            child: _isReady
-                                ? Text(
-                                    t('continue_btn'),
-                                    style: const TextStyle(
-                                      fontFamily: 'Lato',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 18,
-                                      color: Colors.black,
-                                    ),
-                                  )
-                                : (_isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.black,
-                                        ),
-                                      )
-                                    : Text(
-                                        t('continue_btn'),
-                                        style: TextStyle(
-                                          fontFamily: 'Lato',
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 18,
-                                          color: Colors.black.withOpacity(0.4),
-                                        ),
-                                      )),
+                            child: Text(
+                              t('continue_btn'),
+                              style: const TextStyle(
+                                fontFamily: 'Lato',
+                                fontWeight: FontWeight.w700,
+                                fontSize: 18,
+                                color: Colors.black,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 32),
                 ],
               ),

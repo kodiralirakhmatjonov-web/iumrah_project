@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:iumrah_project/features/language/reg_name.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/localization/local_strings.dart';
@@ -126,19 +128,21 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _loading = true);
 
     try {
-      // Регистрация (confirmation у тебя выключен — значит, обычно сразу даёт session)
-      final res = await Supabase.instance.client.auth.signUp(
+      await Supabase.instance.client.auth.signUp(
         email: _email.text.trim(),
         password: _pass.text,
       );
 
-      // Бывает: session null, но user есть (зависит от настроек). В любом случае ведём дальше.
-      if ((res.session != null || res.user != null) && mounted) {
-        Navigator.of(context)
-            .pushReplacement(_premiumRoute(const RegNamePage()));
-      }
-    } catch (_) {
       if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        _premiumRoute(
+          RegNamePage(),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+
       setState(() => _authError = true);
       HapticFeedback.mediumImpact();
     } finally {

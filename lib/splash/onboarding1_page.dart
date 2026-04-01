@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:iumrah_project/splash/onboarding2_page.dart';
 import 'package:video_player/video_player.dart';
 
 import 'package:iumrah_project/core/localization/translations_store.dart';
 import 'package:iumrah_project/core/navigation/premium_route.dart';
-import 'package:iumrah_project/home/home_page.dart';
 
 class Onbording1Page extends StatefulWidget {
   const Onbording1Page({super.key});
@@ -94,7 +94,7 @@ class _Onbording1PageState extends State<Onbording1Page>
 
   void _goNext() {
     Navigator.of(context).pushReplacement(
-      PremiumRoute.push(const HomePage()),
+      PremiumRoute.push(const Onboarding2Page()),
     );
   }
 
@@ -148,14 +148,14 @@ class _Onbording1PageState extends State<Onbording1Page>
                       style: const TextStyle(
                         fontFamily: 'Lato',
                         fontWeight: FontWeight.w800,
-                        fontSize: 36,
-                        height: 1.3,
+                        fontSize: 35,
+                        height: 1.0,
                         color: Colors.white,
                       ),
                     ),
                   ),
 
-                  const SizedBox(height: 50),
+                  const SizedBox(height: 40),
 
                   // ===== BUTTON FADE IN =====
                   FadeTransition(

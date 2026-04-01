@@ -411,46 +411,8 @@ class _InCarPageState extends State<InCarPage> with TickerProviderStateMixin {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 22),
-                  Container(
-                    width: double.infinity,
-                    padding:
-                        const EdgeInsetsDirectional.fromSTEB(18, 24, 18, 24),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF050505),
-                      borderRadius: BorderRadius.circular(34),
-                      border: Border.all(
-                        color: const Color(0xFF9A4DFF),
-                        width: 2,
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          t('advisor_title'),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontFamily: 'Lato',
-                            fontWeight: FontWeight.w800,
-                            fontSize: 26,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          t('advisor_subtitle'),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontFamily: 'Lato',
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
+
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     height: 420,
@@ -767,12 +729,13 @@ class _WayModalSheet extends StatelessWidget {
 
     return SafeArea(
       top: false,
+      bottom: false,
       child: Container(
         decoration: const BoxDecoration(
-          color: Color(0xFF070707),
+          color: Color(0xFFe6e6ef),
           borderRadius: BorderRadiusDirectional.only(
-            topStart: Radius.circular(40),
-            topEnd: Radius.circular(40),
+            topStart: Radius.circular(50),
+            topEnd: Radius.circular(50),
           ),
         ),
         padding: const EdgeInsetsDirectional.fromSTEB(20, 18, 20, 18),

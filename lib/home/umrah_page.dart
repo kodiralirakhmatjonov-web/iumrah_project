@@ -1,10 +1,11 @@
-// ====== ПОЛНЫЙ ФАЙЛ ======
-
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:iumrah_project/core/ui/app_ui.dart';
 import 'package:iumrah_project/home/safa_page.dart';
 import 'package:iumrah_project/home/modal/pay_overlay.dart';
+import 'package:iumrah_project/home/widgets/umrah_header.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -49,10 +50,6 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
   final double _waveExpandedStart = 16;
   final double _waveExpandedTop = 110;
 
-  // =======================
-  // AUDIO KEY
-  // =======================
-
   String get _audioKey {
     switch (_stateIndex) {
       case 0:
@@ -75,7 +72,9 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
     _playerSub = _player.playerStateStream.listen((state) async {
       if (state.processingState == ProcessingState.completed) {
         await Future.delayed(const Duration(milliseconds: 600));
-        _collapseAdvisor();
+        if (mounted) {
+          _collapseAdvisor();
+        }
       }
     });
   }
@@ -94,16 +93,13 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
 
   double get _topFillWidth => _progressW * 0.5;
 
-  // =======================
-  // ADVISOR TAP
-  // =======================
-
   Future<void> _handleAdvisorTap() async {
     if (_isPlaying || _isLoadingAudio) return;
 
     final isPremium = await _isPremiumUser();
 
     if (!isPremium) {
+      if (!mounted) return;
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -122,10 +118,8 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
       final prefs = await SharedPreferences.getInstance();
       final lang = prefs.getString('app_language') ?? 'ru';
 
-      // гарантируем кеш
       await AudioCacheService.loadAndCacheAudio(lang);
 
-      // получаем путь к локальному файлу
       final prefKey = 'audio_${_audioKey}_$lang';
       final localPath = prefs.getString(prefKey);
 
@@ -148,6 +142,7 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
   }
 
   void _collapseAdvisor() {
+    if (!mounted) return;
     setState(() {
       _advisorExpanded = false;
       _isPlaying = false;
@@ -156,11 +151,16 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
   }
 
   Future<void> _handleContinue() async {
+    HapticFeedback.lightImpact();
     await _player.stop();
     _collapseAdvisor();
 
+    if (!mounted) return;
+
     if (_stateIndex < 3) {
-      setState(() => _stateIndex++);
+      setState(() {
+        _stateIndex++;
+      });
     } else {
       Navigator.of(context).push(
         PremiumRoute.push(const SafaPage()),
@@ -168,19 +168,26 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
     }
   }
 
-  // =======================
-  // CONTENT
-  // =======================
+  Future<void> _handleBack() async {
+    if (_stateIndex == 0) return;
+
+    HapticFeedback.lightImpact();
+    await _player.stop();
+    _collapseAdvisor();
+
+    if (!mounted) return;
+
+    setState(() {
+      _stateIndex--;
+    });
+  }
 
   Widget _buildContent() {
     switch (_stateIndex) {
       case 0:
         return Column(
           children: [
-            Image.asset(
-              'assets/icons/pray_icons.png',
-              width: 70,
-            ),
+            Image.asset('assets/icons/pray_icons.png', width: 70),
             const SizedBox(height: 24),
             Text(
               t('tawafpray_title1'),
@@ -211,34 +218,46 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
           children: [
             Image.asset('assets/icons/zamzam.png', width: 80),
             const SizedBox(height: 24),
-            Text(t('zamzam_title1'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontFamily: 'Lato',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18)),
+            Text(
+              t('zamzam_title1'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Lato',
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(t('zamzam_title'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontFamily: 'Lato',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 22)),
+            Text(
+              t('zamzam_title'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Lato',
+                fontWeight: FontWeight.w800,
+                fontSize: 22,
+              ),
+            ),
             const SizedBox(height: 8),
-            const Text('ZAM ZAM',
-                style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 32)),
+            const Text(
+              'ZAM ZAM',
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontWeight: FontWeight.w800,
+                fontSize: 32,
+              ),
+            ),
             const SizedBox(height: 18),
-            Text(t('zamzam_text'),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontFamily: 'Lato',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
-                    height: 1.4,
-                    color: Colors.black.withOpacity(0.75))),
+            Text(
+              t('zamzam_text'),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Lato',
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+                height: 1.4,
+                color: Colors.black.withOpacity(0.75),
+              ),
+            ),
           ],
         );
 
@@ -247,28 +266,37 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
           children: [
             Image.asset('assets/icons/safa.png', width: 80),
             const SizedBox(height: 20),
-            Text(t('safago_title'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 22)),
+            Text(
+              t('safago_title'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Montserrat',
+                fontWeight: FontWeight.w800,
+                fontSize: 22,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text(t('safago_title1'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontFamily: 'Lato',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 18)),
+            Text(
+              t('safago_title1'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Lato',
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
+            ),
             const SizedBox(height: 16),
-            Text(t('safago_text'),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontFamily: 'Lato',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 18,
-                    height: 1.4,
-                    color: Colors.black.withOpacity(0.75))),
+            Text(
+              t('safago_text'),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'Lato',
+                fontWeight: FontWeight.w600,
+                fontSize: 18,
+                height: 1.4,
+                color: Colors.black.withOpacity(0.75),
+              ),
+            ),
           ],
         );
 
@@ -277,12 +305,15 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
           children: [
             Image.asset('assets/icons/dua.png', width: 80),
             const SizedBox(height: 20),
-            Text(t('safadua_title'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 22)),
+            Text(
+              t('safadua_title'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Montserrat',
+                fontWeight: FontWeight.w800,
+                fontSize: 22,
+              ),
+            ),
             const SizedBox(height: 20),
             const Text(
               'إِنَّ الصَّفَا وَالْمَرْوَةَ مِن شَعَائِرِ اللَّهِ ۖ فَمَنْ حَجَّ الْبَيْتَ أَوِ اعْتَمَرَ فَلَا جُنَاحَ عَلَيْهِ أَن يَطَّوَّفَ بِهِمَا ۚ وَمَن تَطَوَّعَ خَيْرًا فَإِنَّ اللَّهَ شَاكِرٌ عَلِيمٌ\n\n'
@@ -326,61 +357,26 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
     }
   }
 
-  // =======================
-  // BUILD
-  // =======================
-
   @override
   Widget build(BuildContext context) {
+    final bool showBack = _stateIndex > 0;
+
     return Scaffold(
       backgroundColor: const Color(0xFFE6E6EF),
       body: SafeArea(
         child: Column(
           children: [
             const SizedBox(height: 8),
-
-            // HEADER
-            Padding(
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Image.asset(
-                    'assets/images/iumrah_logo.png',
-                    height: 85,
-                  ),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      height: 50,
-                      width: 50,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        size: 30,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: UmrahHeader(currentStep: 2),
             ),
-
             const SizedBox(height: 16),
-
-            // ADVISOR
             SizedBox(
               width: _advisorW,
-              height: 240, // фиксируем максимальную высоту
+              height: 240,
               child: Stack(
                 children: [
-                  // =======================
-                  // BLACK CONTAINER
-                  // =======================
-
                   AnimatedContainer(
                     duration: const Duration(seconds: 1),
                     curve: Curves.easeInOutCubic,
@@ -392,14 +388,9 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                       borderRadius: BorderRadius.circular(50),
                     ),
                   ),
-
-                  // =======================
-                  // PROGRESS BAR (Umrah top progress: Tawaf fills to 50%)
-                  // =======================
-
-                  PositionedDirectional(
+                  Positioned(
                     top: 20,
-                    start: 30,
+                    left: 30,
                     child: Container(
                       width: _progressW,
                       height: _progressH,
@@ -408,10 +399,9 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Align(
-                        alignment: AlignmentDirectional.centerStart,
+                        alignment: Alignment.centerLeft,
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 220),
-                          curve: Curves.easeInOut,
                           width: _topFillWidth,
                           height: _progressH,
                           decoration: BoxDecoration(
@@ -422,13 +412,8 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-
-                  // =======================
-                  // ADVISOR TEXT
-                  // =======================
-
-                  const PositionedDirectional(
-                    start: 40,
+                  const Positioned(
+                    left: 40,
                     top: 80,
                     child: Text(
                       'Advisor Premuim Guide',
@@ -440,54 +425,25 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-
-                  // =======================
-                  // GREEN WAVE (ТАЧ ЗДЕСЬ)
-                  // =======================
-
-                  PositionedDirectional(
-                    start: _advisorExpanded
+                  Positioned(
+                    left: _advisorExpanded
                         ? _waveExpandedStart
                         : _waveCollapsedStart,
                     top:
                         _advisorExpanded ? _waveExpandedTop : _waveCollapsedTop,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 900),
-                      curve: Curves.easeInOutCubic,
-                      width: _advisorExpanded
-                          ? _waveExpandedWidth
-                          : _waveCollapsedWidth,
-                      height: _advisorExpanded
-                          ? _waveExpandedHeight
-                          : _waveCollapsedHeight,
-                      child: GestureDetector(
-                        onTap: _handleAdvisorTap,
+                    child: GestureDetector(
+                      onTap: _handleAdvisorTap,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 900),
+                        width: _advisorExpanded
+                            ? _waveExpandedWidth
+                            : _waveCollapsedWidth,
+                        height: _advisorExpanded
+                            ? _waveExpandedHeight
+                            : _waveCollapsedHeight,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(18),
-                          child: GreenWave(
-                            expanded: _advisorExpanded,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // =======================
-                  // POWERED BY AI
-                  // =======================
-
-                  PositionedDirectional(
-                    end: 20,
-                    bottom: 18,
-                    child: AnimatedOpacity(
-                      opacity: _advisorExpanded ? 1 : 0,
-                      duration: const Duration(milliseconds: 500),
-                      child: const Text(
-                        'powered by AI',
-                        style: TextStyle(
-                          fontFamily: 'Lato',
-                          fontSize: 11,
-                          color: Colors.white,
+                          child: GreenWave(expanded: _advisorExpanded),
                         ),
                       ),
                     ),
@@ -495,12 +451,10 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
-//white container
             Expanded(
               child: Padding(
-                padding: const EdgeInsetsDirectional.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -509,8 +463,7 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(50),
                     child: SingleChildScrollView(
-                      padding:
-                          const EdgeInsetsDirectional.fromSTEB(24, 32, 24, 45),
+                      padding: const EdgeInsets.fromLTRB(24, 32, 24, 45),
                       child: Column(
                         children: [
                           _buildContent(),
@@ -522,36 +475,70 @@ class _UmrahPageState extends State<UmrahPage> with TickerProviderStateMixin {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
             Padding(
-              padding: const EdgeInsetsDirectional.symmetric(horizontal: 24),
-              child: SizedBox(
-                height: 65,
-                width: double.infinity,
-                child: Material(
-                  color: const Color(0xFFF06D13),
-                  borderRadius: BorderRadius.circular(50),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(50),
-                    onTap: _handleContinue,
-                    child: Center(
-                      child: Text(
-                        t('complete_btn'),
-                        style: const TextStyle(
-                          fontFamily: 'Lato',
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18,
-                          color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 320),
+                    curve: Curves.easeInOutCubic,
+                    width: showBack ? 110 : 0,
+                    child: showBack
+                        ? Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: SizedBox(
+                              height: 60,
+                              child: PremiumTap(
+                                onTap: _handleBack,
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(50),
+                                  ),
+                                  child: Text(
+                                    t('back_btn'),
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  Expanded(
+                    child: SizedBox(
+                      height: 60,
+                      child: PremiumTap(
+                        onTap: _handleContinue,
+                        child: Container(
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF06D13),
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          child: Text(
+                            _stateIndex < 3
+                                ? t('complete_btn')
+                                : t('continue_btn'),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-
             const SizedBox(height: 24),
           ],
         ),

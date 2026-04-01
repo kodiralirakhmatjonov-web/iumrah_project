@@ -1,8 +1,14 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:iumrah_project/features/language/language_page.dart';
+import 'package:iumrah_project/core/profiles/iumrah_id_start_page.dart';
+import 'package:iumrah_project/core/profiles/profile_identity_card.dart';
+import 'package:iumrah_project/core/profiles/profile_store.dart';
+import 'package:iumrah_project/core/ui/app_ui.dart';
+import 'package:iumrah_project/features/language/language_modal.dart';
 import 'package:iumrah_project/home/rate_page.dart';
+import 'package:iumrah_project/home/widgets/app_header.dart';
+import 'package:iumrah_project/home/widgets/mekka_time_page.dart';
+import 'package:iumrah_project/home/widgets/prayer_hero_section.dart';
 import 'package:iumrah_project/splash/welcome_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
@@ -40,13 +46,13 @@ class _ProfilePageState extends State<ProfilePage>
   static const String _prefsCountryKey = 'profile_country';
 
   // prefs
-  String _name = '—';
-  String _country = '—';
+  final String _name = '—';
+  final String _country = '—';
 
   // flip card
   late final AnimationController _flipCtl;
   late final Animation<double> _flipAnim;
-  bool _isCardBack = false;
+  final bool _isCardBack = false;
 
   // share links placeholders (ты потом подставишь)
   final String _googlePlayUrl =
@@ -56,6 +62,7 @@ class _ProfilePageState extends State<ProfilePage>
   @override
   void initState() {
     super.initState();
+    _loadProfileFromServer();
 
     _topPager.addListener(() {
       final p = _topPager.page ?? 0.0;
@@ -74,23 +81,61 @@ class _ProfilePageState extends State<ProfilePage>
       parent: _flipCtl,
       curve: Curves.easeInOutCubic,
     );
+  }
 
-    _loadFromHomeCache();
+  Future<void> _loadProfileFromServer() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final uid = user.id;
+
+    // ✅ ВОТ СЮДА СТАВИМ ПРОВЕРКУ
+    final alreadyLoaded = prefs.getBool('profile_loaded_$uid') ?? false;
+
+    if (alreadyLoaded) {
+      // 👉 если уже загружали — просто грузим из cache в UI
+      await ProfileStore.load();
+      return;
+    }
+
+    try {
+      final data = await supabase
+          .from('profiles')
+          .select()
+          .eq('user_id', uid)
+          .maybeSingle();
+
+      if (data == null) return;
+
+      final name = (data['name'] ?? '').toString();
+      final email = user.email ?? '';
+      final avatar = (data['avatar_key'] ?? 'male_01').toString();
+
+      // ✅ сохраняем в cache
+      await prefs.setString('profile_name_$uid', name);
+      await prefs.setString('profile_email_$uid', email);
+      await prefs.setString('profile_avatar_key_$uid', avatar);
+
+      // ✅ помечаем что уже загрузили
+      await prefs.setBool('profile_loaded_$uid', true);
+
+      // ✅ обновляем UI
+      await ProfileStore.update(
+        ProfileData(
+          name: name,
+          email: email,
+          avatarKey: avatar,
+        ),
+      );
+    } catch (e) {
+      debugPrint('PROFILE LOAD ERROR: $e');
+    }
   }
 
   // ✅ только SharedPreferences, без Supabase
-  Future<void> _loadFromHomeCache() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final name = prefs.getString(_prefsNameKey) ?? '—';
-    final country = prefs.getString(_prefsCountryKey) ?? '—';
-
-    if (!mounted) return;
-    setState(() {
-      _name = name.trim().isEmpty ? '—' : name.trim();
-      _country = country.trim().isEmpty ? '—' : country.trim();
-    });
-  }
 
   @override
   void dispose() {
@@ -106,29 +151,6 @@ class _ProfilePageState extends State<ProfilePage>
     final s = _name.trim();
     if (s.isEmpty || s == '—') return 'A';
     return s.characters.first.toUpperCase();
-  }
-
-  Color _avatarColor(String name) {
-    // Детерминированный “телеграм-стайл” набор
-    const colors = <Color>[
-      Color.fromARGB(255, 0, 63, 164),
-      Color(0xFF22C55E),
-      Color(0xFFA855F7),
-      Color(0xFFF97316),
-      Color(0xFF06B6D4),
-      Color(0xFFEF4444),
-      Color(0xFF84CC16),
-      Color(0xFF6366F1),
-      Color.fromARGB(255, 255, 128, 0),
-      Color(0xFF14B8A6),
-    ];
-
-    final n = name.trim().isEmpty ? 'A' : name.trim();
-    int h = 0;
-    for (final code in n.codeUnits) {
-      h = (h * 31 + code) & 0x7fffffff;
-    }
-    return colors[h % colors.length];
   }
 
   Future<void> _openPayOverlay() async {
@@ -164,22 +186,6 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  void _flipCard() {
-    HapticFeedback.selectionClick();
-    if (_isCardBack) {
-      _flipCtl.reverse();
-    } else {
-      _flipCtl.forward();
-    }
-    setState(() => _isCardBack = !_isCardBack);
-  }
-
-  void _onCardVerticalDrag(DragEndDetails d) {
-    final v = d.primaryVelocity ?? 0.0;
-    // свайп вверх/вниз переворачивает
-    if (v.abs() > 120) _flipCard();
-  }
-
   Future<void> _shareApp() async {
     HapticFeedback.lightImpact();
 
@@ -205,12 +211,29 @@ class _ProfilePageState extends State<ProfilePage>
   Future<void> _logout() async {
     HapticFeedback.lightImpact();
 
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('is_premium');
 
-    // ✅ чистим именно эти ключи (кеш HomePage)
+    if (user != null) {
+      final uid = user.id;
+
+      // ✅ УДАЛЯЕМ ВСЕ КЭШ ДАННЫЕ ЭТОГО ПОЛЬЗОВАТЕЛЯ
+      await prefs.remove('profile_name_$uid');
+      await prefs.remove('profile_email_$uid');
+      await prefs.remove('profile_avatar_key_$uid');
+      await prefs.remove('profile_loaded_$uid');
+    }
+
+    // ❗ старые ключи тоже убиваем (на всякий)
     await prefs.remove(_prefsNameKey);
     await prefs.remove(_prefsCountryKey);
+
+    // ✅ чистим UI state
+    await ProfileStore.clear();
+
+    // ✅ logout из Supabase (ПОСЛЕ удаления uid!)
+    await supabase.auth.signOut();
 
     if (!mounted) return;
 
@@ -251,6 +274,16 @@ class _ProfilePageState extends State<ProfilePage>
     } catch (e) {
       debugPrint('Delete error: $e');
     }
+  }
+
+  String _avatarAsset(String key) {
+    if (key.startsWith('male_')) {
+      return 'assets/profile/avatars/male/$key.png';
+    }
+    if (key.startsWith('female_')) {
+      return 'assets/profile/avatars/female/$key.png';
+    }
+    return 'assets/profile/avatars/male/male_01.png';
   }
 
   Future<void> _confirmDeleteAccount() async {
@@ -348,32 +381,6 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  // ---------------------------
-  // widgets
-  // ---------------------------
-  Widget _topDots() {
-    Widget dot(bool active) => AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: active
-                ? Colors.white.withOpacity(0.90)
-                : Colors.white.withOpacity(0.25),
-            shape: BoxShape.circle,
-          ),
-        );
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        dot(_topIndex == 0),
-        const SizedBox(width: 8),
-        dot(_topIndex == 1),
-      ],
-    );
-  }
-
   Widget _premiumTap({
     required VoidCallback onTap,
     required Widget child,
@@ -389,26 +396,9 @@ class _ProfilePageState extends State<ProfilePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF131313), // основной фон из Figma
+      backgroundColor: const Color(0xFFe6e6ef), // основной фон из Figma
       body: Stack(
         children: [
-          // ЗОЛОТОЙ СВЕТ
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(0.0, -0.4), // чуть выше центра
-                  radius: 0.6,
-                  colors: [
-                    Color(0xFF07E2FF), // центр
-                    Color(0x0007E2FF), // прозрачный край
-                  ],
-                  stops: [0.0, 1.0],
-                ),
-              ),
-            ),
-          ),
-
           SafeArea(
             bottom: false,
 
@@ -422,136 +412,19 @@ class _ProfilePageState extends State<ProfilePage>
                     const SizedBox(height: 15),
 
                     // ===== HEADER =====
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Image.asset(
-                          'assets/images/iumrah_id2.png',
-                          height: 60,
-                          fit: BoxFit.contain,
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.of(context).maybePop(),
-                          child: Container(
-                            width: 50,
-                            height: 50,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            alignment: AlignmentDirectional.center,
-                            child: const Icon(
-                              Icons.arrow_back_ios_new,
-                              size: 30,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    const AppHeader(),
 
                     const SizedBox(height: 20),
 
-                    // ===== TOP SWIPE CONTAINER (2 states) =====
-                    SizedBox(
-                      width: double.infinity,
-                      height: 250,
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: PageView(
-                              controller: _topPager,
-                              physics: const BouncingScrollPhysics(),
-                              children: [
-                                Column(
-                                  children: [
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      width: 80,
-                                      height: 80,
-                                      decoration: BoxDecoration(
-                                        color: _avatarColor(_name),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      alignment: AlignmentDirectional.center,
-                                      child: Text(
-                                        _firstLetter,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(
-                                          fontFamily: 'Lato',
-                                          fontWeight: FontWeight.w800,
-                                          fontSize: 32,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    Text(
-                                      _name,
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontFamily: 'Lato',
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 40,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                  ],
-                                ),
-                                Column(
-                                  children: [
-                                    const SizedBox(height: 14),
-                                    GestureDetector(
-                                      onVerticalDragEnd: _onCardVerticalDrag,
-                                      onTap: _flipCard,
-                                      child: AnimatedBuilder(
-                                        animation: _flipAnim,
-                                        builder: (context, child) {
-                                          final v = _flipAnim.value;
-                                          final angle = v * math.pi;
-                                          final isBack = angle > (math.pi / 2);
-
-                                          return Transform(
-                                            alignment: Alignment.center,
-                                            transform: Matrix4.identity()
-                                              ..setEntry(3, 2, 0.0012)
-                                              ..rotateX(angle),
-                                            child: isBack
-                                                ? Transform(
-                                                    alignment: Alignment.center,
-                                                    transform:
-                                                        Matrix4.identity()
-                                                          ..rotateX(math.pi),
-                                                    child: const _IdCardBack(),
-                                                  )
-                                                : _IdCardFront(
-                                                    name: _name,
-                                                    country: _country,
-                                                  ),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(height: 5),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          _topDots(),
-                          const SizedBox(height: 14),
-                        ],
-                      ),
-                    ),
-
                     const SizedBox(height: 16),
 
+                    ProfileIdentityCard(),
+
+                    const SizedBox(height: 15),
                     // ===== iumrahID card (opens PayOverlay) =====
-                    _premiumTap(
+                    // ===== iumrahID card (opens IumrahIdStartPage) =====
+                    PremiumTap(
                       onTap: _openPayOverlay,
-                      radius: BorderRadius.circular(40),
                       child: Container(
                         width: double.infinity,
                         height: 110,
@@ -602,12 +475,12 @@ class _ProfilePageState extends State<ProfilePage>
                       ),
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
 
                     // ===== iumrah Plus card (opens PayOverlay) =====
                     _premiumTap(
                       onTap: _openPayOverlay,
-                      radius: BorderRadius.circular(50),
+                      radius: BorderRadius.circular(40),
                       child: Container(
                         width: double.infinity,
                         height: 74,
@@ -618,10 +491,8 @@ class _ProfilePageState extends State<ProfilePage>
                             begin: AlignmentDirectional.centerStart,
                             end: AlignmentDirectional.centerEnd,
                             colors: [
-                              const Color.fromARGB(255, 247, 106, 6)
-                                  .withOpacity(0.70),
-                              const Color.fromARGB(255, 65, 26, 2)
-                                  .withOpacity(0.70),
+                              const Color.fromARGB(255, 247, 106, 6),
+                              const Color.fromARGB(255, 65, 26, 2),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(50),
@@ -655,8 +526,41 @@ class _ProfilePageState extends State<ProfilePage>
                       ),
                     ),
 
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 10),
 
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          PremiumRoute.push(const MekkaTimePage()),
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsetsDirectional.fromSTEB(
+                            20, 20, 20, 20),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF08111B),
+                          borderRadius: BorderRadius.circular(40),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.05),
+                            width: 1,
+                          ),
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.22),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: const PrayerHeroSection(
+                          city: PrayerCity.makkah,
+                        ),
+                      ),
+                    ),
+                    // дальше твой остальной profile UI
+                    const SizedBox(height: 10),
                     // ===== 4 rows container =====
                     Container(
                       width: double.infinity,
@@ -678,8 +582,14 @@ class _ProfilePageState extends State<ProfilePage>
                             text: t('profile_lang'),
                             onTap: () {
                               HapticFeedback.lightImpact();
-                              Navigator.of(context).push(
-                                PremiumRoute.push(const LanguagePage()),
+
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                isDismissible: false,
+                                enableDrag: false,
+                                backgroundColor: Colors.transparent,
+                                builder: (_) => LanguageModal(),
                               );
                             },
                           ),
@@ -713,7 +623,7 @@ class _ProfilePageState extends State<ProfilePage>
                       ),
                     ),
 
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 50),
 
                     // ===== LOGOUT =====
                     _premiumTap(
@@ -740,7 +650,7 @@ class _ProfilePageState extends State<ProfilePage>
                       ),
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 7),
 
                     // ===== DELETE ACCOUNT (ДОБАВЛЕНО) =====
                     _premiumTap(
@@ -778,102 +688,6 @@ class _ProfilePageState extends State<ProfilePage>
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ---------------------------
-// Plastic card front
-// ---------------------------
-class _IdCardFront extends StatelessWidget {
-  final String name;
-  final String country;
-
-  const _IdCardFront({
-    required this.name,
-    required this.country,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 330,
-      height: 190,
-      padding: const EdgeInsetsDirectional.fromSTEB(18, 16, 18, 16),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(25),
-        border: Border.all(
-          color: Color(0xFF07E2FF),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Image.asset(
-            'assets/images/iumrah_id2.png',
-            height: 40,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(height: 60),
-          Text(
-            name,
-            style: const TextStyle(
-              fontFamily: 'Lato',
-              fontWeight: FontWeight.w800,
-              fontSize: 20,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            country,
-            style: const TextStyle(
-              fontFamily: 'Lato',
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-              color: Colors.white,
-              letterSpacing: 0.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------------------
-// Plastic card back
-// ---------------------------
-class _IdCardBack extends StatelessWidget {
-  const _IdCardBack();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 330,
-      height: 190,
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: Color(0xFF07E2FF),
-          width: 1.5,
-        ),
-      ),
-      child: const Center(
-        child: Text(
-          'powered by iumrah ID',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontFamily: 'Lato',
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
-            color: Colors.white,
-          ),
-        ),
       ),
     );
   }

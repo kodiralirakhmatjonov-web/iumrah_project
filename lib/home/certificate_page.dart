@@ -11,7 +11,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:iumrah_project/core/navigation/premium_route.dart';
 import 'package:iumrah_project/core/localization/translations_store.dart';
-import 'package:iumrah_project/home/rate_page.dart';
 
 class CertificatePage extends StatefulWidget {
   const CertificatePage({super.key});
@@ -146,14 +145,15 @@ class _CertificatePageState extends State<CertificatePage> {
                 const SizedBox(height: 28),
 
                 Text(
-                  t('end_text'),
+                  t('sertificate_text3'),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontFamily: 'Lato',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                    color: Colors.white.withOpacity(0.9),
-                    height: 1.2,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    height: 1.0,
+                    letterSpacing: -0.9,
                   ),
                 ),
 

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:iumrah_project/home/modal/safa_modal.dart';
 import 'package:iumrah_project/home/umrah_end.dart';
+import 'package:iumrah_project/home/widgets/umrah_header.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:iumrah_project/core/localization/translations_store.dart';
@@ -271,34 +272,10 @@ class _SafaPageState extends State<SafaPage> with TickerProviderStateMixin {
             child: Column(
               children: [
                 SizedBox(
-                  width: double.infinity,
-                  height: logoBlockHeight,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Image.asset(
-                        'assets/images/iumrah_logo.png',
-                        height: 85,
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          height: 50,
-                          width: 50,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new,
-                            size: 30,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    width: double.infinity,
+                    height: logoBlockHeight,
+                    child: const UmrahHeader(currentStep: 3) // Sai
+                    ),
                 const SizedBox(height: topGapAfterLogo),
                 Expanded(
                   child: LayoutBuilder(

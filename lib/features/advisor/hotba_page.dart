@@ -4,24 +4,27 @@ import 'package:iumrah_project/core/localization/translations_store.dart';
 import 'package:iumrah_project/core/navigation/premium_route.dart';
 import 'package:iumrah_project/core/ui/app_ui.dart';
 import 'package:iumrah_project/features/umrah/mydua_modal.dart';
-import 'package:iumrah_project/home/modal/pay_overlay.dart';
-import 'package:iumrah_project/home/tawaf_page.dart';
+import 'package:iumrah_project/home/advisor_home.dart';
+import 'package:iumrah_project/home/widgets/app_header.dart';
 import 'package:iumrah_project/widgets/green_wave.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
-import 'package:just_audio/just_audio.dart'; // ✅ ДОБАВЛЕНО
+import 'package:just_audio/just_audio.dart';
 
-class UmrahStartPage extends StatefulWidget {
-  const UmrahStartPage({super.key});
+class HotbaPage extends StatefulWidget {
+  const HotbaPage({super.key});
 
   @override
-  State<UmrahStartPage> createState() => _UmrahStartPageState();
+  State<HotbaPage> createState() => _HotbaPageState();
 }
 
-class _UmrahStartPageState extends State<UmrahStartPage>
-    with TickerProviderStateMixin {
-  String t(String key) => TranslationsStore.get(key);
+class _HotbaPageState extends State<HotbaPage> with TickerProviderStateMixin {
+  String t(String key) {
+    final value = TranslationsStore.get(key).trim();
+    if (value.isEmpty || value == key || value == '[$key]') return '';
+    return value;
+  }
 
   int _phase = 0;
   bool _darkMode = false;
@@ -30,8 +33,10 @@ class _UmrahStartPageState extends State<UmrahStartPage>
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
-  final AudioPlayer _audioPlayer = AudioPlayer(); // ✅
-  bool _audioStarted = false; // ✅ защита от повторного старта
+  late AnimationController _tapHintController;
+
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _audioStarted = false;
 
   final double _advisorW = 340;
   final double _collapsedHeight = 150;
@@ -62,34 +67,33 @@ class _UmrahStartPageState extends State<UmrahStartPage>
     _fadeAnimation =
         CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut);
 
+    _tapHintController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 7500),
+    )..repeat();
+
+    _audioPlayer.playerStateStream.listen((state) {
+      if (!mounted) return;
+      if (state.processingState == ProcessingState.completed) {
+        _audioStarted = false;
+      }
+    });
+
     _startPhases();
   }
 
-  Future<bool> _isPremiumUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('is_premium') ?? false;
-  }
-
-  // ====================================================
-  // 🎧 AUDIO LOGIC (ТРОГАЕМ ТОЛЬКО ЭТО)
-  // ====================================================
-
-  Future<void> _startPremiumAudio() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final isPremium = prefs.getBool('is_premium') ?? false;
-    if (!isPremium) return;
-
+  Future<void> _startHeartAudio() async {
     if (!_advisorExpanded) return;
-
     if (_audioStarted) return;
 
+    final prefs = await SharedPreferences.getInstance();
     final lang = prefs.getString('app_language') ?? 'ru';
 
-    // 👇 БЕРЕМ ИЗ КЕША AudioGetPage
-    final localPath = prefs.getString("audio_tawaf_start_$lang");
+    final localPath = prefs.getString('audio_hotba_$lang') ??
+        prefs.getString('audio_heart_prep_$lang') ??
+        prefs.getString('audio_safa_end_$lang');
 
-    if (localPath == null) return;
+    if (localPath == null || localPath.isEmpty) return;
 
     try {
       await _audioPlayer.setFilePath(localPath);
@@ -104,8 +108,6 @@ class _UmrahStartPageState extends State<UmrahStartPage>
     } catch (_) {}
     _audioStarted = false;
   }
-
-  // ====================================================
 
   Future<void> _startPhases() async {
     await _runSinglePhase(0);
@@ -122,23 +124,10 @@ class _UmrahStartPageState extends State<UmrahStartPage>
   Future<void> _handleAdvisorTap() async {
     HapticFeedback.lightImpact();
 
-    final isPremium = await _isPremiumUser();
-
-    if (!isPremium) {
-      if (!mounted) return;
-      await showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: Colors.transparent,
-        builder: (_) => const PayOverlay(),
-      );
-      return;
-    }
-
     _toggleAdvisor();
 
     if (_advisorExpanded) {
-      await _startPremiumAudio();
+      await _startHeartAudio();
     } else {
       await _stopAudio();
     }
@@ -164,7 +153,7 @@ class _UmrahStartPageState extends State<UmrahStartPage>
 
   void _goNext() {
     Navigator.of(context).pushReplacement(
-      PremiumRoute.push(const TawafPage()),
+      PremiumRoute.push(const AdvisorHomePage()),
     );
   }
 
@@ -172,10 +161,62 @@ class _UmrahStartPageState extends State<UmrahStartPage>
     setState(() => _advisorExpanded = !_advisorExpanded);
   }
 
+  double _tapHintOpacity() {
+    final v = _tapHintController.value;
+
+    if (v < 0.08) {
+      return v / 0.08;
+    }
+    if (v < 0.67) {
+      return 1;
+    }
+    if (v < 0.80) {
+      return 1 - ((v - 0.67) / 0.13);
+    }
+    return 0;
+  }
+
+  Widget _buildPreparingStatus() {
+    return Text(
+      t(
+        'hotba_running',
+      ),
+      textAlign: TextAlign.center,
+      style: const TextStyle(
+        fontFamily: 'Lato',
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: Colors.white,
+      ),
+    );
+  }
+
+  String _phaseText() {
+    switch (_phase) {
+      case 0:
+        return t(
+          'hotba_text',
+        );
+      case 1:
+        return t(
+          'hotba_text1',
+        );
+      case 2:
+        return t(
+          'hotba_text3',
+        );
+      default:
+        return t(
+          'hotba_text4',
+        );
+    }
+  }
+
   @override
   void dispose() {
     _fadeController.dispose();
-    _audioPlayer.dispose(); // ✅
+    _tapHintController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -201,50 +242,20 @@ class _UmrahStartPageState extends State<UmrahStartPage>
               ),
             ),
           ),
-
           SafeArea(
             child: Padding(
               padding: const EdgeInsetsDirectional.symmetric(horizontal: 24),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Image.asset(
-                        'assets/images/iumrah_logo1.png',
-                        height: 85,
-                      ),
-                      GestureDetector(
-                        onTap: () => Navigator.pop(context),
-                        child: Container(
-                          height: 50,
-                          width: 50,
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.arrow_back_ios_new,
-                            size: 30,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                    ],
+                  AppHeader(
+                    isDarkBackground: false,
                   ),
-
                   const SizedBox(height: 30),
-
-                  // ================= ADVISOR =================
                   SizedBox(
                     width: _advisorW,
-                    height: 240, // фиксируем максимальную высоту
+                    height: 240,
                     child: Stack(
                       children: [
-                        // =======================
-                        // BLACK CONTAINER
-                        // =======================
-
                         AnimatedContainer(
                           duration: const Duration(seconds: 1),
                           curve: Curves.easeInOutCubic,
@@ -261,11 +272,6 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                             ),
                           ),
                         ),
-
-                        // =======================
-                        // PROGRESS BAR (Umrah top progress: Tawaf fills to 50%)
-                        // =======================
-
                         PositionedDirectional(
                           top: 20,
                           start: 30,
@@ -291,16 +297,11 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                             ),
                           ),
                         ),
-
-                        // =======================
-                        // ADVISOR TEXT
-                        // =======================
-
-                        const PositionedDirectional(
+                        PositionedDirectional(
                           start: 40,
                           top: 80,
-                          child: Text(
-                            'Advisor Umrah Assistant',
+                          child: const Text(
+                            'Advisor Premium Guide',
                             style: TextStyle(
                               fontFamily: 'Lato',
                               fontWeight: FontWeight.w700,
@@ -309,11 +310,49 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                             ),
                           ),
                         ),
-
-                        // =======================
-                        // GREEN WAVE (ТАЧ ЗДЕСЬ)
-                        // =======================
-
+                        PositionedDirectional(
+                          start: _advisorExpanded
+                              ? _waveExpandedStart
+                              : _waveCollapsedStart,
+                          top: _advisorExpanded
+                              ? _waveExpandedTop
+                              : _waveCollapsedTop,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 900),
+                            curve: Curves.easeInOutCubic,
+                            width: _advisorExpanded
+                                ? _waveExpandedWidth
+                                : _waveCollapsedWidth,
+                            height: _advisorExpanded
+                                ? _waveExpandedHeight
+                                : _waveCollapsedHeight,
+                            child: GestureDetector(
+                              onTap: _handleAdvisorTap,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(18),
+                                child: Text(
+                                  t(
+                                    'hotbar_tap_hint',
+                                  ),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black,
+                                        blurRadius: 10,
+                                        offset: Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                         PositionedDirectional(
                           start: _advisorExpanded
                               ? _waveExpandedStart
@@ -341,44 +380,28 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                             ),
                           ),
                         ),
-
-                        // =======================
-                        // POWERED BY AI
-                        // =======================
-
                         PositionedDirectional(
-                          end: 20,
+                          start: 0,
+                          end: 0,
                           bottom: 18,
                           child: AnimatedOpacity(
                             opacity: _advisorExpanded ? 1 : 0,
                             duration: const Duration(milliseconds: 500),
-                            child: const Text(
-                              'powered by AI',
-                              style: TextStyle(
-                                fontFamily: 'Lato',
-                                fontSize: 11,
-                                color: Colors.white,
-                              ),
+                            child: Center(
+                              child: _buildPreparingStatus(),
                             ),
                           ),
                         ),
                       ],
                     ),
                   ),
-
                   const Spacer(),
-
-                  // ================= TEXT PHASE =================
                   GestureDetector(
                     onTap: _toggleDarkMode,
                     child: FadeTransition(
                       opacity: _fadeAnimation,
                       child: Text(
-                        _phase == 0
-                            ? t('start_text')
-                            : _phase == 1
-                                ? t('start_text1')
-                                : t('start_text3'),
+                        _phaseText(),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: _phase >= 2 ? 30 : 24,
@@ -388,10 +411,7 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                       ),
                     ),
                   ),
-
                   const Spacer(),
-
-                  // ================= BOTTOM BLOCK =================
                   Container(
                     padding: const EdgeInsetsDirectional.all(20),
                     decoration: BoxDecoration(
@@ -403,7 +423,6 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                     ),
                     child: Column(
                       children: [
-                        // DUA BUTTON
                         PremiumTap(
                           onTap: () {
                             MyDuaModal.open(context);
@@ -425,10 +444,7 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 15),
-
-                        // CONTINUE BUTTON
                         SizedBox(
                           height: 60,
                           width: double.infinity,
@@ -437,7 +453,7 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.black,
                             ),
-                            onPressed: _goNext, // всегда активна
+                            onPressed: _goNext,
                             child: Text(
                               t('continue_btn'),
                               style: const TextStyle(fontSize: 16),
@@ -447,15 +463,12 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
-
-          // ================= DARK MODE FULL SCREEN =================
-          if (_darkMode && _phase == 3)
+          if (_darkMode && isFinalPhase)
             Positioned.fill(
               child: GestureDetector(
                 onTap: _toggleDarkMode,
@@ -463,7 +476,9 @@ class _UmrahStartPageState extends State<UmrahStartPage>
                   color: Colors.black,
                   alignment: Alignment.center,
                   child: Text(
-                    t('start_text3'),
+                    t(
+                      'hotbar_text5',
+                    ),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 30,

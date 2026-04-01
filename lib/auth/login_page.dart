@@ -3,10 +3,11 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import 'package:iumrah_project/features/language/reg_name.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/localization/local_strings.dart';
-import '../features/language/language_page.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -130,7 +131,9 @@ class _LoginPageState extends State<LoginPage> {
 
       if (session != null && mounted) {
         Navigator.of(context).pushReplacement(
-          _premiumRoute(const LanguagePage()),
+          _premiumRoute(
+            RegNamePage(),
+          ),
         );
       } else {
         if (!mounted) return;

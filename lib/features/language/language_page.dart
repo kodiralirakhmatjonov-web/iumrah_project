@@ -17,7 +17,6 @@ class _LanguagePageState extends State<LanguagePage> {
   String? _selectedLang;
   bool _isLoading = false;
 
-  // Язык UI на этой странице: если не выбран — показываем RU по умолчанию
   String get _Lang => _selectedLang ?? 'en';
 
   final List<Map<String, String>> _languages = const [
@@ -33,15 +32,31 @@ class _LanguagePageState extends State<LanguagePage> {
     {'code': 'bn', 'label': 'বাংলা'},
   ];
 
+  // 🔊 ТУТ БУДЕТ ТВОЯ ЛОГИКА АУДИО
+  Future<void> _loadAudio(String lang) async {
+    try {
+      // TODO:
+      // 1. получить список аудио ссылок из Supabase
+      // 2. закешировать (если offline-first)
+      // 3. сохранить локально / в memory
+    } catch (_) {
+      throw Exception('Audio load failed');
+    }
+  }
+
   Future<void> _continue() async {
     if (_selectedLang == null || _isLoading) return;
 
     setState(() => _isLoading = true);
 
     try {
+      // ✅ 1. загружаем переводы
       await AppBootstrap.setLanguage(_selectedLang!);
 
-      // Жёсткая проверка: только если реально готово — уходим на Home
+      // ✅ 2. загружаем аудио
+      await _loadAudio(_selectedLang!);
+
+      // ✅ 3. проверка
       if (!TranslationsStore.isReady) {
         throw Exception('Store not ready after load');
       }
@@ -166,9 +181,10 @@ class _LanguagePageState extends State<LanguagePage> {
                       : Text(
                           LocalStrings.t('continue_btn', _Lang),
                           style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                          ),
                         ),
                 ),
               ),

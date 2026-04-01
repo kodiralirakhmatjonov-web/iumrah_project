@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/bootstrap/app_bootstrap.dart';
 import 'core/navigation/premium_route.dart';
 import 'auth/auth_gate.dart';
+import 'package:iumrah_project/deep_link_handler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,10 @@ Future<void> main() async {
   );
 
   final bool ready = await AppBootstrap.init();
+
+  /// 🔥 ВАЖНО: запускаем deeplink listener
+  await DeepLinkHandler.instance.start();
+
   runApp(MyApp(isReady: ready));
 }
 
@@ -40,7 +45,6 @@ class MyApp extends StatelessWidget {
   static const _langKey = 'app_language';
 
   bool _isRtlLang(String? lang) {
-    // если у тебя арабский хранится как 'ar' — этого достаточно
     return lang != null && lang.toLowerCase().startsWith('ar');
   }
 
@@ -50,29 +54,27 @@ class MyApp extends StatelessWidget {
       future: SharedPreferences.getInstance(),
       builder: (context, snap) {
         final prefs = snap.data;
-        final lang = prefs
-            ?.getString(_langKey); // язык, который ты сохраняешь в AppBootstrap
+        final lang = prefs?.getString(_langKey);
         final isRtl = _isRtlLang(lang);
 
         return MaterialApp(
           debugShowCheckedModeBanner: false,
 
-          // ✅ важно для RTL: делегаты
+          /// 🔥 ВАЖНО: подключаем navigatorKey для deeplink
+          navigatorKey: navigatorKey,
+
           localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
 
-          // ✅ добавь сюда свои языки (минимум ar чтобы RTL работал корректно)
           supportedLocales: const [
             Locale('en'),
             Locale('ru'),
             Locale('ar'),
-            // Locale('uz'), Locale('tr'), ...
           ],
 
-          // ✅ ключевое: глобально задаём направление
           builder: (context, child) {
             return Directionality(
               textDirection: isRtl ? TextDirection.rtl : TextDirection.ltr,
@@ -80,7 +82,6 @@ class MyApp extends StatelessWidget {
             );
           },
 
-          // твоя текущая логика навигации не трогаю
           onGenerateRoute: (settings) {
             return PremiumRoute.push(const AuthGate());
           },

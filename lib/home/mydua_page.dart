@@ -127,6 +127,7 @@ class _MyDuaPageState extends State<MyDuaPage>
                                       style: const TextStyle(
                                         fontFamily: 'Lato',
                                         fontWeight: FontWeight.w700,
+                                        height: 1.1,
                                         fontSize: 32,
                                         color: Colors.white,
                                       ),
@@ -139,6 +140,7 @@ class _MyDuaPageState extends State<MyDuaPage>
                                         fontFamily: 'Lato',
                                         fontSize: 18,
                                         color: Colors.white,
+                                        height: 0.5,
                                       ),
                                     ),
                                   ],

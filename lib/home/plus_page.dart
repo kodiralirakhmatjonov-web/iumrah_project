@@ -26,6 +26,7 @@ import 'package:flutter/services.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:iumrah_project/core/navigation/premium_route.dart';
 import 'package:iumrah_project/home/audio_get.dart';
+
 import 'package:iumrah_project/widgets/green_wave.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -62,16 +63,30 @@ class _PlusPageState extends State<PlusPage> {
   // Internal guard: protects against double tap / re-entrancy
   bool _purchaseInFlight = false;
 
+  bool _isPremium = false;
+
   @override
   void initState() {
     super.initState();
     _initIap();
+    _loadPremium();
   }
 
   @override
   void dispose() {
     _purchaseSub?.cancel();
     super.dispose();
+  }
+
+  Future<void> _loadPremium() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isPremium = prefs.getBool('is_premium') ?? false;
+
+    if (!mounted) return;
+
+    setState(() {
+      _isPremium = isPremium;
+    });
   }
 
   Future<void> _initIap() async {
@@ -308,6 +323,7 @@ class _PlusPageState extends State<PlusPage> {
       child: Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(
+          bottom: false,
           child: Stack(
             children: [
               // CONTENT
@@ -350,11 +366,10 @@ class _PlusPageState extends State<PlusPage> {
                       const SizedBox(height: 18),
 
                       // ===== IMAGE advisor.png =====
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(28),
+                      SizedBox(
+                        width: double.infinity,
                         child: Image.asset(
                           'assets/images/plus_image1.png',
-                          width: double.infinity,
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -449,24 +464,39 @@ class _PlusPageState extends State<PlusPage> {
 
                       // ===== BUY BUTTON (pay_btn) =====
                       GestureDetector(
-                        onTap: _loadingPurchase ? null : _buyAdvisor,
+                        onTap: _loadingPurchase
+                            ? null
+                            : (_isPremium
+                                ? _openAudioGetOrSuccess
+                                : _buyAdvisor),
                         child: Container(
                           width: double.infinity,
                           height: 60,
                           decoration: BoxDecoration(
-                            color: const Color.fromARGB(255, 255, 134, 6),
+                            color: _isPremium
+                                ? Colors.black
+                                : const Color.fromARGB(255, 255, 134, 6),
                             borderRadius: BorderRadius.circular(50),
-                            boxShadow: [],
+                            boxShadow: _isPremium
+                                ? [
+                                    BoxShadow(
+                                      color: const Color.fromARGB(
+                                          255, 255, 137, 2),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ]
+                                : [],
                           ),
                           alignment: AlignmentDirectional.center,
                           child: Text(
-                            t('buy_btn'),
+                            _isPremium ? 'Offline Advisor' : t('buy_btn'),
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontFamily: 'Lato',
                               fontWeight: FontWeight.w900,
                               fontSize: 18,
-                              color: Color.fromARGB(255, 255, 255, 255),
+                              color: Colors.white,
                               letterSpacing: 0.2,
                             ),
                           ),
@@ -477,7 +507,7 @@ class _PlusPageState extends State<PlusPage> {
 
                       // ===== SUBTEXT under button (pay_btn_sub) =====
                       Text(
-                        t('buy_btn_sub'),
+                        _isPremium ? 'Offline Available' : t('buy_btn_sub'),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontFamily: 'Lato',
@@ -674,7 +704,7 @@ class _OfflineAdvisorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 22),
+      padding: const EdgeInsetsDirectional.fromSTEB(20, 20, 20, 20),
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 0, 0, 0),
         borderRadius: BorderRadius.circular(50),
@@ -701,41 +731,6 @@ class _OfflineAdvisorCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                PremiumRoute.push(
-                  const AudioGetPage(),
-                ),
-              );
-            },
-            child: Container(
-              width: double.infinity,
-              height: 60,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: AlignmentDirectional.centerStart,
-                  end: AlignmentDirectional.centerEnd,
-                  colors: [
-                    Color.fromARGB(255, 255, 153, 0),
-                    Color.fromARGB(255, 172, 80, 0),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(50),
-              ),
-              alignment: AlignmentDirectional.center,
-              child: Text(
-                'Offline Advisor',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontFamily: 'Lato',
-                  fontWeight: FontWeight.w900,
-                  fontSize: 19,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
